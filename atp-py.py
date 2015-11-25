@@ -64,11 +64,11 @@ def pu_to_ohm(y):
 
 
 
-print(ajuda.texto('welcome'))
-print(ajuda.texto('query_ANA'))
+ajuda.texto('welcome')
+ajuda.texto('queryArq')
 ANA = input()
 while ANA != '':
-    print(ajuda.texto('query_ANA'))
+    ajuda.texto('queryArq')
     ANA = input()
 else:
     root_ANA = Tk()
@@ -169,21 +169,18 @@ else:
             if str(item) == line[0]:
                 EQUIV_LISTA.append(line)
     # print(EQUIV_LISTA)
-    print('AS BARRAS A SEREM CODIFICADAS SÃO:', end='\n\n')
-    print('{0:>6s} {1:<11s} {2:>6s}'.format('NÚMERO', 'NOME', 'TENSÃO'))
+    print('{0:>6s} {1:<11s} {2:>6s}'.format(*ajuda.texto('cabecalho', query='list')))
     for line in EQUIV_LISTA:
         print('{0:>6s} {1:<11s} {2:>6s}'.format(*line))
     print(' ')
-    print('TOTAL DE BARRAS PARA CODIFICAR: ', len(EQUIV_LISTA))
+    print(ajuda.texto('barrasTot', query='string'), len(EQUIV_LISTA))
 
 # INSERÇÃO DA LISTA DE NOMES PARA ATP PELO USUÁRIO ------------------------#
-    print(' ','CRIE UM ARQUIVO TEXTO COM OS CÓDIGOS PARA ATP (NÃO SE ESQUEÇA DO "TERRA").', sep='\n')
-    print(' ','SEU ARQUIVO DEVE TER A MESMA SEQUÊNCIA DA LISTA ACIMA.', sep='\n')
-    print(' ','PARA A INSERIR O ARQUIVO TEXTO PRESSIONE "ENTER".', sep='\n')
+    ajuda.texto('ATPinput')
+    ajuda.texto('queryArq')
     TXT = input()
     while TXT != '':
-        print(' ','COMANDO INVÁLIDO!', sep='\n')
-        print(' ','PARA A INSERIR O ARQUIVO TEXTO PRESSIONE "ENTER":', sep='\n')
+        ajuda.texto('queryArq')
         TXT = input()
     else:
         root_TXT = Tk()
@@ -192,17 +189,15 @@ else:
         root_TXT.destroy()
         with open(file_TXT, 'r') as atp:
             TXT_NAME  = atp.readlines()
-        print('ABAIXO ESTÁ A LISTA DE BARRAS QUE VOCÊ INCLUIU:' + '\n')
         for item in TXT_NAME:
             print(item[0:5])
         print(' ')
-        print('TOTAL DE BARRAS CODIFICADAS: ' , len(TXT_NAME))
+        print(ajuda.texto('barrasTot', query='string') , len(TXT_NAME))
         if len(TXT_NAME) != len(EQUIV_LISTA):
-            print(' ','AS LISTAS CONTÊM QUANTIDADES DIFERENTES!', sep='\n', end='\n')
+            ajuda.texto('diff')
         else:
-            print(' ','AS LISTAS CONTÊM QUANTIDADES IGUAIS.', sep='\n', end='\n')
-            print(' ','CONFIRA SE OS CÓDIGOS CORRESPONDEM ENTRE SI.','ESCOLHA UMAS DAS OPÇÕES ABAIXO:', sep='\n', end='\n')
-        print(' ','1 - ACEITAR A LISTA E GERAR ARQUIVO .LIB.', '2 - INSERIR NOVA LISTA.',' ', sep='\n', end='\n')
+            ajuda.texto('igual')
+        ajuda.texto('queryLib')
         CONTINUAR = input()
         while CONTINUAR != '1' and CONTINUAR != '2':
             print("OPÇÃO INVÁLIDA!")
