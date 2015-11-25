@@ -1,29 +1,10 @@
-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-# ATP-Py 1.0.001 BRANCH - Versão Final                                          #
-#-------------------------------------------------------------------------------#
-# O código processa os dados do arquivo .*ANA proveniente do ANAFAS e gera um   #
-# arquivo texto em formato padrão Branch e com nomes especificados pelo usuário #
-# para ser inserido no ATPDraw.                                                 #
-# Execute o arquivo e siga as intruções na tela.                                #
-#-------------------------------------------------------------------------------#
-# Autor: Rafael Henrique Juchem, Graduando em Engenharia Elétrica               #
-# Supervisores: Eng. Rafael Eduardo Schneider Ristow e Dr. Miguel Moreto        #
-#-------------------------------------------------------------------------------#
-# Agradecimentos:                                                               #
-# Eng. Rafael Eduardo Schneider Ristow                                          #
-# Dr. Miguel Moreto                                                             #
-# Eng. Ricardo Antunes                                                          #
-# Eng. Leonardo Otto Grander                                                    #
-# Eng. Miguel Pires de Carli                                                    #          
-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
+import ajuda
 from datetime import datetime
 import numpy as np
 import re
 from tkinter import *
-#from tkinter import ttk
 from tkinter import filedialog
-import itertools
-import collections
+import textwrap
 
 start_time = datetime.now()
 S_BASE_ANA = 100 # MVA
@@ -83,15 +64,11 @@ def pu_to_ohm(y):
 
 
 
-
-print('O APLICATIVO É BASEADO NA IDENTIFICAÇÃO DA LISTA "DBAR"',
-      'E DAS LINHAS DO EQUIVALENTE QUE CONTENHAM "EQUIV." NO NOME DE CIRCUITO (CN)',
-      'QUE ESTÃO CONTIDAS NO ARQUIVO *.ANA QUE O USUÁRIO IRÁ INSERIR.',
-      ' ',
-      'PRESSIONE "ENTER" PARA ESCOLHER O ARQUIVO *.ANA.', sep='\n', end='\n')
+print(ajuda.texto('welcome'))
+print(ajuda.texto('query_ANA'))
 ANA = input()
 while ANA != '':
-    print('PRESSIONE "ENTER" PARA ESCOLHER O ARQUIVO *.ANA.')
+    print(ajuda.texto('query_ANA'))
     ANA = input()
 else:
     root_ANA = Tk()
