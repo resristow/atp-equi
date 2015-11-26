@@ -57,7 +57,70 @@ def pu_to_ohm(y):
     if x < 0: # Filtro para valor negativo
         y = '0.1000'
     return y
-# -----------------------------------------------------------------------------#     
+# -----------------------------------------------------------------------------#  
+
+def get_DBAR(arquivo):
+
+    flag = 0
+    DBAR = []
+
+    for linha in arquivo:
+        if (flag == 3) & ('99999' in linha): 
+            flag = 0
+            break
+        if (flag == 1) and not ('(' in linha[0]):
+            flag = flag | 2  
+        if flag == 3: DBAR.append(linha[0:35])
+        if 'DBAR' in linha[0:4]: flag = flag | 1
+
+    bn, vbas = {},{}
+    for linha in DBAR:
+        nb = int(linha[0:5])
+        bn[nb] = linha[9:21].strip()
+        vbas[nb] =float(linha[31:35])
+    bn[0] = 'TERRA'
+    vbas[0] = 0
+    return [bn,vbas]
+
+def get_EQUIV(arquivo):
+    flag = 0
+    BF, BT, T, R1, X1, R0, X0 = [[] for n in range(7)]
+    for linha in arquivo:
+        if '998' in linha[65:75]:
+            BF.append(int(linha[0:5]))
+            BT.append(int(linha[7:12]))
+            T.append(linha[16])
+            try:
+                if '.' in linha[17:23]: R1.append(float(linha[17:23])/100)
+                else: R1.append(float(linha[17:23])) 
+            except(ValueError):R1.append(0)
+            try:
+                if '.' in linha[23:29]: X1.append(float(linha[23:29])/100)
+                else: X1.append(float(linha[23:29]))
+            except(ValueError): X1.append(0)
+            try:
+                if '.' in linha[29:35]: R0.append(float(linha[29:35])/100)
+                else: R0.append(float(linha[29:35]))
+            except(ValueError): R0.append(0)
+            try:
+                if '.' in linha[35:41]: X0.append(float(linha[35:41])/100)
+                else: X0.append(float(linha[35:41]))
+            except(ValueError): X0.append(0)
+            flag = 1
+        if (flag == 1) and ('99999' in linha[0:6]): break
+    return [BF, BT, T, R1, X1, R0, X0]
+
+def percentOhm(params, vbas):
+    paramsOhm = []
+    for item in params[3:]:
+        paramsOhm.append([])
+        for valor in item:
+            if valor == 999999:
+                paramsOhm[params[3:].index(item)].append('999999')
+            else:
+                base = vbas[params[0][item.index(valor)]]**2/100
+                paramsOhm[params[3:].index(item)].append(str(valor*base/100)[:6])
+    return paramsOhm
 
 
 # LEITURA DO ARQUIVO ORIGINAL -------------------------------------------------#
@@ -72,110 +135,39 @@ while ANA != '':
     ANA = input()
 else:
     root_ANA = Tk()
-#     ttk.Button(root_ANA, text="Selecione o arquivo.").grid()
-    file_ANA = filedialog.askopenfilename()
-    print(file_ANA + '\n')
+    root_ANA.withdraw()
+    file_ANA = open(filedialog.askopenfilename(),'r')
     root_ANA.destroy()
-    with open(file_ANA, 'r') as f:
-        f_lines = f.readlines()
-    
-# SELEÇÃO DA LISTA DE BARRAS --------------------------------------------------#
-    
-    #Lista de linhas que contem DBAR no inicio
-    DBAR_inicio = [bar for bar, data in enumerate(f_lines) if 'DBAR' in data[0:4]]
-    
-    #Lista de linhas que contem 99999 no inicio
-    DBAR_final = [bar for bar, data in enumerate(f_lines) if '99999' in data[0:5]] 
-    
-    # print(DBAR_inicio) 
-    # print(DBAR_final) 
-    
-    for item in DBAR_final:
-        if item < DBAR_inicio[0]: # Testa se o primeiro item de DARB_final é maior que DBAR_inicio
-            continue # Passa para o próximo item se não obedecer a condição.
-        DBAR = f_lines[DBAR_inicio[0]+3:item] # seleciona dados de barras entre DBAR_final e DBAR_inicio sem cabeçalho
-        break # Pára a função ao achar uma linha (um item em DBAR_final) com valor maior que DBAR_inicio
-    #print(DBAR)
-    
-    DBAR = [re.sub(line, line[0:35], line) for line in DBAR] #Filtra os primeiros 35 caracteres da lista de barras
-    #print(DBAR)
 
-
-# FILTRO DA LISTA DE BARRAS -------------------------------------------------------#
-
-    DBAR_LISTA = []
-    for line in DBAR:
-        NB = space_replacer(line[0:5])
-        BN = line[9:20]
-        VBAS = space_replacer(line[31:35])
-        DBAR_LISTA.append([NB, BN, VBAS])
-    DBAR_LISTA.append(['0', 'TERRA', '0'])
-    # print(DBAR_LISTA)
     
+# LISTA DE BARRAS --------------------------------------------------#
+
+    dbarLista = get_DBAR(file_ANA)
+
     
 # LISTA DE EQUIVALENTES -------------------------------------------------------#
     
-    EQUIV = []
-    for line in f_lines:
-        if "EQUIV." in line:
-            EQUIV.append(line)
-    # print(EQUIV)
-        
-    data_equiv = []
-    CODE_FOR_EQUIV = []
-    for line_equiv in EQUIV:
-        # -------------------------------------------------------------------------#
-        BF = space_replacer(line_equiv[0:5])
-        BT = space_replacer(line_equiv[7:12])
-        T = space_replacer(line_equiv[16])
-        #Impedâncias --------------------------------------------------------------#
-        R1 = space_replacer(space_to_zero(line_equiv[17:23]))
-        X1 = space_replacer(space_to_zero(line_equiv[23:29]))
-        R0 = space_replacer(space_to_zero(line_equiv[29:35]))
-        X0 = space_replacer(space_to_zero(line_equiv[35:41]))
-        data_equiv.append([BF , BT , T , R1 , X1 , R0 , X0])
-        CODE_FOR_EQUIV.append([BF, BT])
-    # print(data_equiv)
-    # print(CODE_FOR_EQUIV)
+    equivLista = get_EQUIV(file_ANA)
+
+    valsOhm = percentOhm(equivLista, dbarLista[1])
     
-# SELEÇÃO DE BF E BT DO EQUIVALENTE EM LINHA UNICA ----------------------------#
+# IMPRESSAO DE BARRAS QUE POSSUEM EQUIVALENTES
     
-    CODE_FOR_ATP = []
-    for line in CODE_FOR_EQUIV:
-        CODE_FOR_ATP.append(line[0])
-        CODE_FOR_ATP.append(line[1])
-    # print(CODE_FOR_ATP)
+    barrasEquiv = set()
+
+    for n in range(2):
+        for barra in equivLista[n]: barrasEquiv.add(barra)
+    barrasEquiv = sorted(barrasEquiv)
+
     
-# FILTRO DAS BARRAS EXISTENTES NO EQUIVALENTE EM FORMATO STRING ---------------#
-    
-    CODE_LIST = list(set(CODE_FOR_ATP))
-    # print(CODE_LIST)
-    
-# NÚMERO DAS BARRAS EXISTENTES NO EQUIVALENTE EM FORMATO NUMÉRICO -------------#
-    
-    CODE_LISTA = []
-    for item in CODE_LIST:
-        CODE_LISTA.append(int(item))
-    # print(CODE_LISTA)
-    
-# NÚMERO DAS BARRAS EXISTENTES NO EQUIVALENTE EM ORDEM CRESCENTE --------------#
-    
-    CODE_LISTA.sort()
-    # print(list(CODE_LISTA))
-    
-    EQUIV_LISTA = []
-    for item in CODE_LISTA:
-        for line in DBAR_LISTA:
-            if str(item) == line[0]:
-                EQUIV_LISTA.append(line)
-    # print(EQUIV_LISTA)
     print('{0:>6s} {1:<11s} {2:>6s}'.format(*ajuda.texto('cabecalho', query='list')))
-    for line in EQUIV_LISTA:
-        print('{0:>6s} {1:<11s} {2:>6s}'.format(*line))
+    for barra in barrasEquiv:
+        print('{0:>6d} {1:<12s} {2!s:>6}'.format(barra, dbarLista[0][barra], dbarLista[1][barra]))
     print(' ')
-    print(ajuda.texto('barrasTot', query='string'), len(EQUIV_LISTA))
+    print(ajuda.texto('barrasTot', query='string'), len(barrasEquiv))
 
 # INSERÇÃO DA LISTA DE NOMES PARA ATP PELO USUÁRIO ------------------------#
+
     ajuda.texto('ATPinput')
     ajuda.texto('queryArq')
     TXT = input()
@@ -184,56 +176,52 @@ else:
         TXT = input()
     else:
         root_TXT = Tk()
-        file_TXT = filedialog.askopenfilename()
-        print(file_TXT + '\n')
+        root_TXT.withdraw()
+        file_TXT = open(filedialog.askopenfilename(),'r')
         root_TXT.destroy()
-        with open(file_TXT, 'r') as atp:
-            TXT_NAME  = atp.readlines()
-        for item in TXT_NAME:
-            print(item[0:5])
-        print(' ')
-        print(ajuda.texto('barrasTot', query='string') , len(TXT_NAME))
-        if len(TXT_NAME) != len(EQUIV_LISTA):
+
+        barrasATP = {0:'      '}
+        cont = 1
+        for barra in file_TXT:
+            barrasATP[barrasEquiv[cont]] = barra.strip()
+            cont += 1
+
+        print(ajuda.texto('barrasTot', query='string') , len(barrasATP))
+        if len(barrasATP) != len(barrasEquiv):
             ajuda.texto('diff')
         else:
             ajuda.texto('igual')
         ajuda.texto('queryLib')
         CONTINUAR = input()
-        while CONTINUAR != '1' and CONTINUAR != '2':
-            print("OPÇÃO INVÁLIDA!")
+        while CONTINUAR != '1':
             CONTINUAR = input()
-        else:
-            while CONTINUAR == '2': #'2 - INSERIR NOVA LISTA'
-                root_TXT = Tk()
-                file_TXT = filedialog.askopenfilename()
-                print(file_TXT + '\n')
-                root_TXT.destroy()
-                with open(file_TXT, 'r') as atp:
-                    TXT_NAME  = atp.readlines()
-                print('ABAIXO ESTÁ A LISTA DE BARRAS QUE VOCÊ INCLUIU:' + '\n')
-                for item in TXT_NAME:
-                    print(item[0:5])
-                print(' ')
-                print("TOTAL DE BARRAS CODIFICADAS: " , len(TXT_NAME))
-                if len(TXT_NAME) != len(EQUIV_LISTA):
-                    print(' ','AS LISTAS CONTÊM QUANTIDADES DIFERENTES!', sep='\n', end='\n')
-                else:
-                    print(' ','AS LISTAS CONTÊM QUANTIDADES IGUAIS.', sep='\n', end='\n')
-                print(' ','CONFIRA SE AMBAS AS LISTAS CORRESPONDEM','ESCOLHA UMAS DAS OPÇÕES ABAIXO:', sep='\n', end='\n')
-                print(' ','1 - ACEITAR A LISTA E GERAR ARQUIVO .LIB.', '2 - INSERIR NOVA LISTA.',' ', sep='\n', end='\n')
-                CONTINUAR = input()
-            else: #'1 - ACEITAR A LISTA E GERAR ARQUIVO .LIB'
-                while CONTINUAR != '1':
-                    print("OPÇÃO INVÁLIDA!")
-                    CONTINUAR = input()
-                else:
-                    DBAR_NAME = []
-                    for line in TXT_NAME:
-                        DBAR_NAME.append(space_replacer(line[0:5]))
-#    print(DBAR_NAME)
-    for line in EQUIV_LISTA:
-        line.append(DBAR_NAME[EQUIV_LISTA.index(line)])
-    #print(EQUIV_LISTA)
+
+
+    #composição de nome auxiliares para geração no ATP
+
+    gerATP = {}
+
+    for barra in range(len(equivLista[0])):
+        if (equivLista[1][barra] == 0) and (equivLista[3][barra] != 999999):
+            gerATP[barra] = 'F' + barrasATP[equivLista[0][barra]][:-1]
+    print(gerATP)
+    if set(gerATP.values()) != len(gerATP): print('REPETECO')
+
+
+    file_EQUI = open('equivalente.lib','w')
+    file_EQUI.write('/BRANCH')
+
+
+
+    for linha in range(len(equivLista[0])):
+        file_EQUI.write('51' + barrasATP[equivLista[0][linha]] + 'A' + barrasATP[equivLista[1][linha]] + 'A' + 12*' ' \
+            + '{0:<6s}'.format(valsOhm[2][linha]) + 6*' ' + '{0:<6s}'.format(valsOhm[3][linha]) + '\n')
+        file_EQUI.write('52' + barrasATP[equivLista[0][linha]] + 'B' + barrasATP[equivLista[1][linha]] + 'B' + 12*' ' \
+            + '{0:<6s}'.format(valsOhm[0][linha]) + 6*' ' + '{0:<6s}'.format(valsOhm[1][linha]) + '\n')
+        file_EQUI.write('53' + barrasATP[equivLista[0][linha]] + 'C' + barrasATP[equivLista[1][linha]] + 'C\n')
+
+
+        
     
 # NC --------------------------------------------------------------------------#
     NC = []
