@@ -30,7 +30,8 @@ def get_DBAR(arquivo):
     for linha in DBAR:
         nb = int(linha[0:5])
         bn[nb] = linha[9:21].strip()
-        vbas[nb] =float(linha[31:35])
+        try: vbas[nb] = float(linha[31:35])
+        except(ValueError): pass
     bn[0] = 'TERRA'
     vbas[0] = 0
     return [bn,vbas]
@@ -228,16 +229,29 @@ else:
 
     gerATP = {}
 
-    for barra in range(len(equivLista[0])):
-        if (equivLista[1][barra] == 0) and (equivLista[3][barra] != 9999.99):
-            gerATP[barra] = 'F' + barrasATP[equivLista[0][barra]][:-1]
+    fontesATP = dict(barrasATP)
+    for key in fontesATP.keys(): fontesATP[key] = ''
+    
+
+    for linha in range(len(equivLista[0])):
+        if (equivLista[1][linha] == 0) and (equivLista[3][linha] != 9999.99):
+            gerATP[linha] = 'F' + barrasATP[equivLista[0][linha]][:-1]
+            fontesATP[equivLista[0][linha]] = gerATP[linha]
 
     repeteco() 
+
+    
 
     with open('FONTES.TXT','w') as fontes:
         fontes.write('Lista dos nomes dos nós que possuem fontes\n')
         for barra in gerATP.keys():
             fontes.write(gerATP[barra] + '{0:>6s}'.format(str(dbarLista[1][equivLista[0][barra]])) + '\n')
+
+    with open('FRONTEIRA.TXT','w') as front:
+        front.write('Barras de Fronteira e seus nomes de ATP\n')
+        front.write('{0:<9s}{1:<15s}{2:<9s}{3:<5s}\n'.format('NB', 'ANAFAS', 'ATP', 'FONTE'))
+        for barra in barrasEquiv:
+            front.write('{0:<9s}{1:<15s}{2:<9s}{3:<5s}\n'.format(str(barra), dbarLista[0][barra], barrasATP[barra], fontesATP[barra]))
 
     file_EQUI = open('equivalente.lib','w')
 
