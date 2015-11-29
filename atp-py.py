@@ -1,13 +1,27 @@
 import ajuda
-from datetime import datetime
-import numpy as np
-import re
-from tkinter import *
+import tkinter
 from tkinter import filedialog
 import textwrap
+from pathlib import Path
 
-start_time = datetime.now()
-S_BASE_ANA = 100 # MVA
+
+# classe node:
+#     numAna
+#     vBase
+#     nomeAna
+#     nomeAtp
+#     nomeGerAtp
+# classe branch:
+#     nodeFrom
+#     nodeTo
+#     type
+#     params
+
+class node():
+    def __init__():
+        pass
+
+
 
 
 # FUNÇÕES ---------------------------------------------------------------------#
@@ -155,104 +169,107 @@ def repeteco():
 
 
 
-ajuda.texto('welcome')
-ajuda.texto('queryArq')
-ANA = input()
-while ANA != '':
-    ajuda.texto('queryArq')
-    ANA = input()
-else:
-    root_ANA = Tk()
-    root_ANA.withdraw()
-    file_ANA = open(filedialog.askopenfilename(),'r')
-    root_ANA.destroy()
+# ajuda.texto('welcome')
+# ajuda.texto('queryArq')
+# ANA = input()
+# while ANA != '':
+#     ajuda.texto('queryArq')
+#     ANA = input()
+# else:
+#     root_ANA = Tk()
+#     root_ANA.withdraw()
+    # file_ANA = open(filedialog.askopenfilename(),'r')
+    # root_ANA.destroy()
 
+
+arqAna = Path('./Testes/equiv.ana')
+file_ANA = open(arqAna,'r')
     
 # LISTA DE BARRAS --------------------------------------------------#
 
-    dbarLista = get_DBAR(file_ANA)
+dbarLista = get_DBAR(file_ANA)
 
-    
+
 # LISTA DE EQUIVALENTES -------------------------------------------------------#
-    
-    equivLista = get_EQUIV(file_ANA)
 
-    valsOhm = percentOhm(equivLista, dbarLista[1])
-    
+equivLista = get_EQUIV(file_ANA)
+
+valsOhm = percentOhm(equivLista, dbarLista[1])
+
 # IMPRESSAO DE BARRAS QUE POSSUEM EQUIVALENTES
-    
-    barrasEquiv = set()
 
-    for n in range(2):
-        for barra in equivLista[n]: barrasEquiv.add(barra)
-    barrasEquiv = sorted(barrasEquiv)
+barrasEquiv = set()
 
-    
-    print('{0:>6s} {1:<11s} {2:>6s}'.format(*ajuda.texto('cabecalho', query='list')))
-    for barra in barrasEquiv:
-        print('{0:>6d} {1:<12s} {2!s:>6}'.format(barra, dbarLista[0][barra], dbarLista[1][barra]))
-    print(' ')
-    print(ajuda.texto('barrasTot', query='string'), len(barrasEquiv))
+for n in range(2):
+    for barra in equivLista[n]: barrasEquiv.add(barra)
+barrasEquiv = sorted(barrasEquiv)
+
+
+print('{0:>6s} {1:<11s} {2:>6s}'.format(*ajuda.texto('cabecalho', query='list')))
+for barra in barrasEquiv:
+    print('{0:>6d} {1:<12s} {2!s:>6}'.format(barra, dbarLista[0][barra], dbarLista[1][barra]))
+print(' ')
+print(ajuda.texto('barrasTot', query='string'), len(barrasEquiv))
 
 # INSERÇÃO DA LISTA DE NOMES PARA ATP PELO USUÁRIO ------------------------#
 
-    ajuda.texto('ATPinput')
+ajuda.texto('ATPinput')
+ajuda.texto('queryArq')
+TXT = input()
+while TXT != '':
     ajuda.texto('queryArq')
     TXT = input()
-    while TXT != '':
-        ajuda.texto('queryArq')
-        TXT = input()
+else:
+    root_TXT = Tk()
+    root_TXT.withdraw()
+    file_TXT = open(filedialog.askopenfilename(),'r')
+    root_TXT.destroy()
+
+    barrasATP = {0:'      '}
+    cont = 1
+    for barra in file_TXT:
+        barrasATP[barrasEquiv[cont]] = barra.strip()
+        cont += 1
+
+    print(ajuda.texto('barrasTot', query='string') , len(barrasATP))
+    if len(barrasATP) != len(barrasEquiv):
+        ajuda.texto('diff')
     else:
-        root_TXT = Tk()
-        root_TXT.withdraw()
-        file_TXT = open(filedialog.askopenfilename(),'r')
-        root_TXT.destroy()
-
-        barrasATP = {0:'      '}
-        cont = 1
-        for barra in file_TXT:
-            barrasATP[barrasEquiv[cont]] = barra.strip()
-            cont += 1
-
-        print(ajuda.texto('barrasTot', query='string') , len(barrasATP))
-        if len(barrasATP) != len(barrasEquiv):
-            ajuda.texto('diff')
-        else:
-            ajuda.texto('igual')
-        ajuda.texto('queryLib')
+        ajuda.texto('igual')
+    ajuda.texto('queryLib')
+    CONTINUAR = input()
+    while CONTINUAR != '1':
         CONTINUAR = input()
-        while CONTINUAR != '1':
-            CONTINUAR = input()
 
 
-    #composição de nome auxiliares para geração no ATP
+#composição de nome auxiliares para geração no ATP
 
-    gerATP = {}
+gerATP = {}
 
-    fontesATP = dict(barrasATP)
-    for key in fontesATP.keys(): fontesATP[key] = ''
-    
+fontesATP = dict(barrasATP)
+for key in fontesATP.keys(): fontesATP[key] = ''
 
-    for linha in range(len(equivLista[0])):
-        if (equivLista[1][linha] == 0) and (equivLista[3][linha] != 9999.99):
-            gerATP[linha] = 'F' + barrasATP[equivLista[0][linha]][:-1]
-            fontesATP[equivLista[0][linha]] = gerATP[linha]
 
-    repeteco() 
+for linha in range(len(equivLista[0])):
+    if (equivLista[1][linha] == 0) and (equivLista[3][linha] != 9999.99):
+        gerATP[linha] = 'F' + barrasATP[equivLista[0][linha]][:-1]
+        fontesATP[equivLista[0][linha]] = gerATP[linha]
 
-    
+repeteco() 
 
-    with open('FONTES.TXT','w') as fontes:
-        fontes.write('Lista dos nomes dos nós que possuem fontes\n')
-        for barra in gerATP.keys():
-            fontes.write(gerATP[barra] + '{0:>6s}'.format(str(dbarLista[1][equivLista[0][barra]])) + '\n')
 
-    with open('FRONTEIRA.TXT','w') as front:
-        front.write('Barras de Fronteira e seus nomes de ATP\n')
-        front.write('{0:<9s}{1:<15s}{2:<9s}{3:<5s}\n'.format('NB', 'ANAFAS', 'ATP', 'FONTE'))
-        for barra in barrasEquiv:
-            front.write('{0:<9s}{1:<15s}{2:<9s}{3:<5s}\n'.format(str(barra), dbarLista[0][barra], barrasATP[barra], fontesATP[barra]))
 
-    file_EQUI = open('equivalente.lib','w')
+with open('FONTES.TXT','w') as fontes:
+    fontes.write('Lista dos nomes dos nós que possuem fontes\n')
+    for barra in gerATP.keys():
+        fontes.write(gerATP[barra] + '{0:>6s}'.format(str(dbarLista[1][equivLista[0][barra]])) + '\n')
 
-    makeEqui()
+with open('FRONTEIRA.TXT','w') as front:
+    front.write('Barras de Fronteira e seus nomes de ATP\n')
+    front.write('{0:<9s}{1:<15s}{2:<9s}{3:<5s}\n'.format('NB', 'ANAFAS', 'ATP', 'FONTE'))
+    for barra in barrasEquiv:
+        front.write('{0:<9s}{1:<15s}{2:<9s}{3:<5s}\n'.format(str(barra), dbarLista[0][barra], barrasATP[barra], fontesATP[barra]))
+
+file_EQUI = open('equivalente.lib','w')
+
+makeEqui()
