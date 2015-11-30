@@ -1,0 +1,192 @@
+TIPO
+P
+TITU     1
+ONS = SISTEMA INTERLIGADO = CONFIG DEZ/2015 = VERSÃO 14/12/2012 = BR1512PU.ANA
+CMNT     1
+================================================================================
+CMNT     2
+ CICLO DO PAR ANO 2013 / 2015
+CMNT     3
+ CASO DE REFERÊNCIA BR1512PU.ANA GERADO A PARTIR DO CASO DE REFERÊNCIA
+CMNT     4
+ BR1412PU.ANA DE 14/12/2012, APLICANDO-SE OS ARQUIVOS DE ALTERAÇÕES
+CMNT     5
+ NNE1512PU.ALT, SECO1512PU.ALT E SUL1512PU.ALT.
+CMNT     6
+================================================================================
+DBAR
+(NB  CEM      BN               VBAS DISJUN          DDMMAAAADDMMAAAA IA SA 
+(----=-= ------------          ---- ------          --------======== ---===
+ 5701    ALEGRET2230            230                                    3
+ 5702    ALEGRET2 69             69                                    3
+ 5710    BAGE 2  230            230                                    3
+ 5712    BAGE 2   69             69                                    3
+ 5764    SE DCHICA              230                                    3
+ 5820    LIVRAM2 230            230                                    3
+ 5821    LIVRAM2  69             69                                    3
+ 5825    MACAMB  230            230                                    3
+ 5900    SANGEL2 230            230                                    3
+ 5935    SMARIA3 230            230                                    3
+ 5937    SMARIA3  69             69                                    3
+ 5955    SVICEN  230            230                                    3
+ 5976    UPME G1  13           13.8                                    3
+ 5977    UPME G2  13           13.8                                    3
+ 5978    UPME G3  13           13.8                                    3
+ 5979    UPME G4  13           13.8                                    3
+ 5980    UPME    230            230                                    3
+ 6360    SANGELO 230            230                                   15
+ 6401    C.CHATO  230           230                                   15
+ 6676    SMARIA3  138           138                                    3
+ 6762    CANDIOTA 230           230                                    3
+41458    Livra3RS-230           230                     2016
+41459    Macam3RS-230           230                     2018
+41261    CNEGRA-RS230           230
+99999
+DCIR
+(BF  CE  BT   NCT  R1    X1    R0    X0    CN                  TB  TCIA DEF  KM CD RNDE  XNDE CP RNPA  XNPA SA     NunNop DJ_BF CicDJ_BT Cic                    DDMMAAAADDMMAAAA M.V.A              TD     NOME EXTENSO
+(----=-=====  --=------======------======------               -----==---=== ====--======------==------======---    ===--- ======---======---                    ========-------- =====              == --------------------
+( 5701   5820   1    245  122311.42931.347CEEE                          3     128
+( 5710   5820   1    289  1444  1348  3699CEEE                          3     151
+( 5701   5825   1  1.582 7.889 6.76827.761CEEE                          3    82.6
+( 5764   5935   1    112   625   575  1611CEE                           3
+( 5701   5955   1    173 9.629 8.86924.817CEEE                          3     101
+( 5935   5955   1    138   766   704  1986CEEE                          3    81.3
+(    0   5976   1         1388999999999999CEE                           3
+(    0   5977   1         1388999999999999CEE                           3
+(    0   5978   1          871999999999999CEE                           3
+(    0   5979   1          871999999999999CEE                           3
+( 5979   5980   2         1188999999999999CEE                           3
+( 5978   5980   2         1188999999999999CEE                           3
+( 5976   5980   1         1288999999999999CEE                           3
+( 5978   5980   1         1188999999999999CEE                           3
+( 5977   5980   1         1244999999999999CEE                           3
+( 5979   5980   1         1188999999999999CEE                           3
+( 5900   6360   1      5    37    33   144CEE                           3
+(    0   5980   1T999999999999        1138CEE                   5976    3                      YN                                                                                                       CEE
+(    0   5980   2T999999999999        1124CEE                   5977    3                      YN                                                                                                       CEE
+(    0   5980   3T999999999999        1088CEE                   5978    3                      YN                                                                                                       CEE
+(    0   5980   4T999999999999        1088CEE                   5978 2  3                      YN                                                                                                       CEE
+(    0   5980   5T999999999999        1088CEE                   5979    3                      YN                                                                                                       CEE
+(    0   5980   6T999999999999        1088CEE                   5979 2  3                      YN                                                                                                       CEE
+( 5764   5935   2L 1.168 5.936 5.59620.704ATEVI                         3    64.3
+( 6401   5820   1L0.46632.4099 2.3296.8033ESU                          15    24.5
+( 6762   5980   1L    10    50    45   120NOVO	                         3
+( 6762   5710   1L    67 3.808 3.80811.424NOVO                         15      50                                                                                    2015
+(41458   6401   1L 0.065 0.542.417021.7263                                                                                                                           2015
+( 6401   5820   2L0.46632.4099 2.3296.8033ESU                          15    24.5                                                                                    2018
+(41458   5701   1L 1.013 8.498 6.56827.189                                                                                                                           2016
+(41458   5935   1L 1.88516.00312.51151.789                                                                                                                           2015
+(41458   5935   2L 1.88516.00312.51151.789                                                                                                                           2021
+( 5935   5900   1L1.56127.588610.23641.728                                                                                                                           2018
+( 5825  41459   1L.02219.18034.125520.6654                                                                                                                           2018
+( 5825  41459   2L 0.023 0.184.11427.49235                                                                                                                           2018
+( 6360  41459   1L2.263818.39412.80367.871                                                                                                                           2018
+( 6360  41459   2L 2.34318.64911.71350.466                                                                                                                           2018
+(41458  41459   1L 1.65413.98910.89545.099                                                                                                                           2018
+( 6762   5980   2L    10    50    45   120NOVO                                                                                                                       2018
+( 6762   5710   2L    67 3.808 3.80811.424NOVO                                                                                                                       2018
+(41459      0   1H999999999999       66667                                       YN
+(41458  41261   1 0.56174.06674.0667  1220
+(41458  41261   2 0.56174.06674.0667  1220
+41261      0   1       5.8905         168EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+41458      0   1 .023754.3761.021124.1065EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6762      0   1 .024841.3336.02896.81329EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6676      0   1 15.58652.0090.75125.0403EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6401      0   1 999999999999.652086.9743EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6360   6762   1 4.811460.392680647988653EQUIV.                      998                                                                                                                               Equivalente serie
+ 6360      0   1 .147062.1402.118511.4897EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5980   6360   1 32.272 1567133002.36823.EQUIV.                      998                                                                                                                               Equivalente serie
+ 6762   5980   3 11.29864.771464542500788EQUIV.                      998                                                                                                                               Equivalente serie
+ 5980      0   1 0.31573.5162.282582.5875EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5955      0   1 26.317 40579 1.12526.465EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5937      0   1 999999999999.49554 3.276EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5935   5937   1T.235885.6522.408045.2549EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 5935   6676   1T 0.326   518.467084.8995EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 5935      0   1 999999999999 -5243 -3355EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5900   6360   2  30926108865 -2212-13490EQUIV.                      998                                                                                                                               Equivalente serie
+ 5900   6676   1T 11712 2905310409.10415.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 5900      0   1 3.340533.407.974667.0923EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5825   6360   1 4.932924.906 12066 21377EQUIV.                      998                                                                                                                               Equivalente serie
+ 5825      0   1 7.8198 10459.510215.5571EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5821      0   1 9999999999991.12287.3973EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5820   5821   1T 0.363  1278.5892112.088EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 5820      0   1 999999999999-2.201  4704EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5764   5900   1 10.14151.506 72808 69695EQUIV.                      998                                                                                                                               Equivalente serie
+ 5764   5980   1 15.73862.509192988232634EQUIV.                      998                                                                                                                               Equivalente serie
+ 5764   6360   1   3780 1433844153.44240.EQUIV.                      998                                                                                                                               Equivalente serie
+ 5764   6676   1T41.82298.305617950540119EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 5764   6762   1 21.27193.95418794.16415.EQUIV.                      998                                                                                                                               Equivalente serie
+ 5764      0   1 .299373.3902.446483.3585EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5712      0   1 999999999999.315053.8156EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5710   5712   1T.211928.8758.326177.8437EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 5710      0   1 999999999999-24268 34143EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5702   6676   1T20.46274.412 38115 71169EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 5702      0   1 1.670841.2670.33222.6145EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 5701   5702   1T.12622   543.201394.9221EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 5701   5825   2 2.0935  143582.098 20427EQUIV.                      998                                                                                                                               Equivalente serie
+ 5701      0   1 9999999999992.1482  1832EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+99999
+DARE
+(NN  C                            NOME                
+(--  =            ------------------------------------
+  1               AMPLA
+  2               CEB-D
+  3               CEEE-GT
+  4               CELESC-D
+  5               CELG
+  6
+  7               CEMAT
+  8               CEMIG-GT
+  9               CTEEP
+ 12               COPEL-GT
+ 13               CPFL-PAULISTA
+ 14               ELETRONORTE-MT
+ 15               ELETROSUL
+ 16               FURNAS
+ 17               LIGHT
+ 18               ENERSUL
+ 19               ESCELSA
+ 21               CHESF
+ 22               AES-SUL
+ 23               ELETRONORTE-PA
+ 24               ELETRONORTE-MA
+ 25               ELETRONORTE-TO
+ 31               CLFSC
+ 32               CBA
+ 33               CEEE-D
+ 36               EBE
+ 37               EDEVP
+ 38               ELEKTRO
+ 40               CERAN
+ 44               EMAE
+ 46               TRACTEBEL
+ 47               ITAIPU
+ 48               RGE
+ 51               AES-TIETÊ
+ 52               DUKE-GP
+ 53
+ 55               CESP
+ 59               ENERGISA MG
+ 60               ENERGISA NF
+ 61               EEB
+ 71               CNEE
+ 83
+ 85
+ 87
+ 88               CEMIG-D
+ 89
+ 91               CAIUÁ
+ 93
+ 94               PPTE
+ 95               ATE
+ 97               CPFL-PIRATININGA
+ 99
+100
+195               CMS
+196               GERDAU
+197               CARBOCLORO
+198               COPEL-D
+501
+998               EQUIVALENTE
+999
+99999
