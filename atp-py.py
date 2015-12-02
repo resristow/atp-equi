@@ -5,6 +5,7 @@ import re
 from tkinter import *
 from tkinter import filedialog
 import textwrap
+from pathlib import Path
 
 start_time = datetime.now()
 S_BASE_ANA = 100 # MVA
@@ -189,8 +190,10 @@ else:
 
     
     print('{0:>6s} {1:<11s} {2:>6s}'.format(*ajuda.texto('cabecalho', query='list')))
-    for barra in barrasEquiv:
-        print('{0:>6d} {1:<12s} {2!s:>6}'.format(barra, dbarLista[0][barra], dbarLista[1][barra]))
+    with Path('./Barras_Fronteira.bar').open('w') as front:
+        for barra in barrasEquiv:
+            print('{0:>6d} {1:<12s} {2!s:>6}'.format(barra, dbarLista[0][barra], dbarLista[1][barra]))
+            front.write('{0:>6d} {1:<12s} {2!s:>6}\n'.format(barra, dbarLista[0][barra], dbarLista[1][barra]))
     print(' ')
     print(ajuda.texto('barrasTot', query='string'), len(barrasEquiv))
 
@@ -242,12 +245,7 @@ else:
 
     
 
-    with open('FONTES.TXT','w') as fontes:
-        fontes.write('Lista dos nomes dos nós que possuem fontes\n')
-        for barra in gerATP.keys():
-            fontes.write(gerATP[barra] + '{0:>6s}'.format(str(dbarLista[1][equivLista[0][barra]])) + '\n')
-
-    with open('FRONTEIRA.TXT','w') as front:
+    with open('RELATORIO_SAIDA.TXT','w') as front:
         front.write('Barras de Fronteira e seus nomes de ATP\n')
         front.write('{0:<9s}{1:<15s}{2:<9s}{3:<5s}\n'.format('NB', 'ANAFAS', 'ATP', 'FONTE'))
         for barra in barrasEquiv:

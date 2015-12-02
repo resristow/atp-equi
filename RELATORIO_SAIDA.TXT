@@ -1,0 +1,22 @@
+Barras de Fronteira e seus nomes de ATP
+NB       ANAFAS         ATP      FONTE
+0        TERRA                        
+5701     ALEGRET2230    ALG23         
+5702     ALEGRET2 69    ALG69    FALG6
+5710     BAGE 2  230    BA223         
+5712     BAGE 2   69    BA269         
+5764     SE DCHICA      DCH23    FDCH2
+5820     LIVRAM2 230    LI223         
+5821     LIVRAM2  69    LI269         
+5825     MACAMB  230    MAC23    FMAC2
+5900     SANGEL2 230    SA223    FSA22
+5935     SMARIA3 230    SM323         
+5937     SMARIA3  69    SM369         
+5955     SVICEN  230    SVI23    FSVI2
+5980     UPME    230    PME23    FPME2
+6360     SANGELO 230    SAN23    FSAN2
+6401     C.CHATO  230   CCH23         
+6676     SMARIA3  138   SM313    FSM31
+6762     CANDIOTA 230   CAN23    FCAN2
+41261    CNEGRA-RS230   CNE23    FCNE2
+41458    Livra3RS-230   LI323    FLI32
