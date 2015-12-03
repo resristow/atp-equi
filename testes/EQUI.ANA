@@ -86,18 +86,22 @@ DBAR
  6296    TIMBO--SC023            23   12.5                            88
  6297    VIDALR-SC138           138                                   88
  6306    LAGES--SC138           138   31.5                            89    A
+ 6615    C.COMP-PR230           230   25.1                            91
  6616    UBERAB-PR230           230  33.13                            91
+ 6617    CIC----PR230           230  40.16                            91
  6619    UMBARA-PR230           230  40.16                            91
  6626    CASCVO-PR525           525  40.16                            91
  6627    BATEIA-PR230           230  40.16                            91
  6628    BATEIA-PR525           525  39.59                            91
  6662    GBM----PR525           525  39.59                            91
+ 6664    GRALHA-PR230           230  40.16                            91
  6673    R.POXI-PR230           230     40                            91
  6731    P.FISC-PR230           230  40.16                            91
  6747    REPAR--PR230           230                                   98
  6757    SEGRED-PR525           525  30.24                            91
  6758    SE-SEG-PR525           525  30.24                            91
  6761    DI.SJP-PR230           230  40.16                            91
+ 6762    CASSOB-PR230           230  40.16                            91
  6763    SMATEU-PR230           230  42.67                            91
  6764    SMONIC-PR230           230     40                            91
  6824    ARAUCA-PR069            69   11.9                            92    A
@@ -160,16 +164,22 @@ DBAR
  7991    JARARB-SC138           138                                   94    A
  8800    SPILAO-SC138           138     40                            88
 43351    HYOSUN-SC138           138                                   88
+44657    CBASUL-PR230           230                                   91
 44704  1 ARE-T1-PR000                                                 91
 44705    ARE-T1-PR013          13.8                                   91    A
 44706  1 ARE-T2-PR000                                                 91
 44707    ARE-T2-PR013          13.8                                   91    A
+44804  1 UMB-T1-PR000                                                 91
+44805    UMB-T1-PR013          13.8                                   91    A
+44806  1 UMB-T2-PR000                                                 91
+44807    UMB-T2-PR013          13.8                                   91    A
 44827  1 BTA-T3-PR000                                                 91
 44828    BTA-T3-PR013          13.8                                   91    A
 44829  1 BTA-T4-PR000                                                 91
 44830    BTA-T4-PR013          13.8                                   91    A
 44831  1 BTA-T5-PR000                                                 91
 44832    BTA-T5-PR013          13.8                                   91    A
+44841    SQUITE-PR230           230                                   91
 44847  1 CBL-T1-PR000                                                 91
 44848    CBL-T1-PR013          13.8                                   91    A
 46856  1 BLUME1-SC000                                                 94
@@ -313,8 +323,6 @@ DBAR
 99135    BGARCIA  23             23                                   88
 99136    BGARCIA4.16G          4.16                                   88
 99137    TIMBO-SC23B             23                                   88
-99138  1 T#TBO13823B                                                  88
-99139    TIMBO-SC4.16          4.16                                   88
  7904    INDAI2-SC230           230                                   94
  6114    INDAI2-SC138           138                                   94    A
 47153  1 INDA21-SC000                                                 99
@@ -375,12 +383,23 @@ DCIR
  7733   7736   1L 0.255 2.922   346  1252                             93
 50213   7752   1L 0.036    460.53541.9319                             97
 50213   7752   2L 0.036    460.53541.9319                             97
+ 6615   6617   1L    26   126    73   297                             91
+ 6615   6664   1L    36   218   119   512                             91
+ 6615  44841   1L    18    950.94713.4311                             91
  6616   6619   2L    55   335   187   789                             91
+ 6617   6619   1L    12    74    39   168                             91
+ 6619   6664   1L     7    39    22    93                             91
  6619   6673   1L     2     9     8    24                             91
+ 6619   6762   1L    38   188   137   568                             91
  6619   7739   1L 0.011     1     1     1                             91
  6619   7739   2L 0.011     10.0461 0.033                             91
+ 6627   6615   1L    27   161    98   510                             91
+ 6627   6615   2L    27   161   100   508                             91
+ 6627   6615   3L    34   170   100   353                             91
+ 6664   6747   1L     2    13     8    31                             91
  6747   6761   1L    46   270   182   769                             98
  6761   6616   1L    23   110    60   225                             91
+ 6762   6761   1L    35   168   105   428                             91
  6763   7739   1L   221  1148   775  3602                             91
  6763   7749   1L 2.474  1262  1078  2811                             91
  7299   6616   1L    37   1891.71746.2693                             91
@@ -419,6 +438,9 @@ DCIR
  7980   7770   2L 0.564 2.8832.61689.5613                             94
  7990   7980   1L1.36865.97955.724119.718                             94
  7990   7980   2L1.36865.97955.724119.718                             94
+44657   6616   1L0.48442.3396 2.248   776                             91
+44657   6619   1L0.48442.3396 2.248   776                             91
+44841   6619   1L    45   2342.08847.7614                             91
  7734  46942   1L    29   1541.52575.5617                             94
  7734  46942   2L    29   1541.52575.5617                             94
 46942   7808   1L   216  115211.22241.369                             94
@@ -613,6 +635,14 @@ DCIR
  7299  44847   1T           1           1                             91        YN
 44847  44848   1T         430999999999999                             91
     0  44847   1T999999999999         430                             91                      YN
+ 6619  44804   1T        2120        2120                             91        YN
+44804   6870   1T        -231        -231                             91                      YN
+44804  44805   1T        1251999999999999                             91
+    0  44804   1T999999999999        1251                             91                      YN
+ 6619  44806   1T        1800        1800                             91        YN
+44806   6870   1T         390         390                             91                      YN
+44806  44807   1T         976999999999999                             91
+    0  44806   1T999999999999         976                             91                      YN
  7731  46920   1T 0.166 5.162 0.166 5.162                             94        YN
  7738  46920   1T 0.277 0.846 0.277 0.846                             94        YN
 46921  46920   1T 0.19464.266999999999999                             94
@@ -866,10 +896,6 @@ DCIR
 99136  99134   1T   109  1239999999999999TT-7                         88 30
     0  99134   1T9999999999991.0899  1246TT-7                 99136   88                      YN
  6201  99134   1T   376  43123.7601  4305TT-7                         88        YN
- 6295  99138   1T    8641.2550.816333.155TT-2                         88        YN
-99137  99138   1T    49-2.9550.5163-0.295TT-2                         88        YN
-99139  99138   1T   18420.245999999999999TT-2                         88 30
-    0  99138   1T9999999999991.883715.745TT-2                 99139   88                      YN
  7733   7713   2L0.01360.23730.29121.0214                             93
     0   7711   2H999999999999      66.666                             93                      YN
     0   7713   1H999999999999      66.666                             93                      YN
@@ -893,10 +919,13 @@ DCIR
 47155   6114   2T         -53         -53                             94                      YN
 47155  47156   2T        1338999999999999                             94
     0  47155   2T999999999999        1338                     47156 2 94                      YN
-84000      0   1  17551 469352.579738.933EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+99137      0   1 9999999999992.632515.286EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+84000      0   1  17551 469382.579538.934EQUIV.                      998        YN                                                                                                                     Equivalente shunt
 83001  84000   1 39.744 11357 16438 52780EQUIV.                      998                                                                                                                               Equivalente serie
-83001      0   1 1.209830.5922.623124.509EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+83001      0   1 1.209530.5922.622924.511EQUIV.                      998        YN                                                                                                                     Equivalente shunt
 50213      0   1 .068471.6457.111711.0807EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+44841      0   1  -4155159513.002968.6995EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+44657      0   1 999999999999-25746-2473.EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  8800      0   1 .2E-1415.734      5.8442EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7928      0   1 999999999999 28813135968EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7926   7928   1 .27625.691761.12162.4693EQUIV.                      998                                                                                                                               Equivalente serie
@@ -908,7 +937,6 @@ DCIR
  7833      0   1 1.370153.191.3558213.286EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7823  50213   1T 31601 7736958192.43060.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  7823      0   1 5.392845.817.556026.6671EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 7820  50213   1 136100288653999999999999EQUIV.                      998                                                                                                                               Equivalente serie
  7820  83001   1 96.702 32265410014751829EQUIV.                      998                                                                                                                               Equivalente serie
  7820      0   1 0.17892.4147.018010.7307EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7809   7823   1T27.441 1465497.369 47216EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
@@ -920,12 +948,10 @@ DCIR
  7802   7823   1 .319821.77132.20725.4657EQUIV.                      998                                                                                                                               Equivalente serie
  7802      0   1 .063873.1548.016341.0608EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7766   7820   1T3.009524.97797.091 15781EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 7766   7823   1T 59825159376 .58E6  .3E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  7766  50213   1 81.194 24972.294E6.175E6EQUIV.                      998                                                                                                                               Equivalente serie
  7766      0   1 .026151.2772.04195.64736EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7762   7820   1T3.886815.65676.567 14383EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 7762  83001   1T 15528 3684012017.15720.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 7762  84000   1T16080123675895331..121E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 7762  83001   1T 15528 3684212017.15720.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  7762      0   1 .086161.3366.09254.88033EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7752   7766   1 .548755.792330.08476.305EQUIV.                      998                                                                                                                               Equivalente serie
  7752   7820   1T18.766 11910 92146141639EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
@@ -934,7 +960,6 @@ DCIR
  7752      0   1 0.14982.6619.128381.0735EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7751   7752   1 .111061.12592.72227.3829EQUIV.                      998                                                                                                                               Equivalente serie
  7751   7766   1 .673929.175846.417 11631EQUIV.                      998                                                                                                                               Equivalente serie
- 7751   7802   1T 3429721774810553.12645.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  7751   7820   1T25.309 15595140835209871EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  7751   7823   1T5.480432.793 17237 27002EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  7751  50213   1 0.38733.585510.27825.414EQUIV.                      998                                                                                                                               Equivalente serie
@@ -942,9 +967,7 @@ DCIR
  7747   7751   1T53.575 2297520306.20619.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  7747   7752   1T93.075 2898465761.51381.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  7747   7766   1T43.165 2114227378.24906.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 7747   7820   1  47009143885.266E6.124E6EQUIV.                      998                                                                                                                               Equivalente serie
  7747   7823   1  15778 6027125526.27967.EQUIV.                      998                                                                                                                               Equivalente serie
- 7747  50213   1  58498131094999999999999EQUIV.                      998                                                                                                                               Equivalente serie
  7747      0   1 .122974.5794.525853.4712EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7742   7809   1 .91397 3.7715.189518.034EQUIV.                      998                                                                                                                               Equivalente serie
  7742      0   1 68.9141088715.292364.417EQUIV.                      998        YN                                                                                                                     Equivalente shunt
@@ -952,10 +975,8 @@ DCIR
  7723   7751   1T55.071 1888111219.14187.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  7723   7752   1T67.768 1923310892.16634.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  7723   7766   1T  194664.483118316222315EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 7723   7802   1 14540020739531148.49274.EQUIV.                      998                                                                                                                               Equivalente serie
  7723   7820   1  12955 2905412266.11869.EQUIV.                      998                                                                                                                               Equivalente serie
  7723   7823   1  21899 7218427901.29273.EQUIV.                      998                                                                                                                               Equivalente serie
- 7723  50213   1  70833142111999999999999EQUIV.                      998                                                                                                                               Equivalente serie
  7723      0   1 .077212.5263.154481.2234EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7719   7723   1T53.858 17569478929861650EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  7719   7747   1T 12028 57630.109E695522.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
@@ -963,103 +984,95 @@ DCIR
  7719   7752   1 .572486.220822.63160.349EQUIV.                      998                                                                                                                               Equivalente serie
  7719   7766   1 .261793.090812.708  3278EQUIV.                      998                                                                                                                               Equivalente serie
  7719   7820   1T8.507968.106 39126 61069EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 7719   7823   1 165111434098999999999999EQUIV.                      998                                                                                                                               Equivalente serie
  7719  50213   1  22449 68033999999999999EQUIV.                      998                                                                                                                               Equivalente serie
  7719      0   1 .038441.9974.03907.84122EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 7015   7762   1 11.41552.761 23782 55427EQUIV.                      998                                                                                                                               Equivalente serie
- 7015   7820   1T 7282514098582311.88720.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 7015   7762   1 11.41552.764 23782 55427EQUIV.                      998                                                                                                                               Equivalente serie
  7015  83001   1T1.796113.89412.20845.489EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 7015  84000   1T20.34891.82888.473 33262EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 7015      0   1 1.987124.4250.775810.925EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6870      0   1 14.36875.434.164684.8623EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6826   7015   1T 11259 19645111682211866EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 7015  84000   1T20.34791.83188.473 33262EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 7015      0   1 1.986624.4280.776610.939EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6870  44841   1T21.59980.911139859317302EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6870      0   1 14.88676.7899.063935.046EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6826   7015   1T 11260 19646111682211867EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6826   7719   1T 21348 7076460054011824.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6826   7723   1T190070285013.202E6.238E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6826   7751   1T 5506816098121798.40749.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6826   7752   1T 4145912304414183.27448.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6826   7762   1T 29320 5264210825.16339.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6826   7766   1T77.115 25972147885304797EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6826   7820   1T21.92458.564 24090 51958EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6826  83001   1T9.792326.53429.22589.701EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6826  84000   1T9.252533.60426.594 12300EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6826      0   1 4.5752  26406.554428.868EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6824   6870   2 33.11748.179 49403 92528EQUIV.                      998                                                                                                                               Equivalente serie
- 6824      0   1  5345715819722.15880.176EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6764   6824   1T97.281 18830208493509418EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6764   6870   1T  4929 12860138517401166EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6764   7015   1T 9389021351017005.28938.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6764      0   1 1.501128.221.583056.7395EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6763   6826   1T 9938911263137176.38736.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6763   7015   1T.813975.38093.909515.202EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6763   7762   1T 14460 3276285546010470.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6763  83001   1 30.21787.888 54458 90454EQUIV.                      998                                                                                                                               Equivalente serie
-84000   6763   2  25479 56957396493661900EQUIV.                      998                                                                                                                               Equivalente serie
- 6763      0   1 33.728 13082   15619.175EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6761   6763   1 11942726585831383.47897.EQUIV.                      998                                                                                                                               Equivalente serie
- 6761   6764   1 2.906149.431  9414 48633EQUIV.                      998                                                                                                                               Equivalente serie
- 6761   6824   1T 37546 53748.459E6.314E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6761   6870   1T 13140 2851849414.73453.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6761   7015   1T95.711 42877 75563244011EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6761   7762   1T395573640436.215E6.322E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6761  83001   1 20280042809151999.89150.EQUIV.                      998                                                                                                                               Equivalente serie
- 6761      0   1  68909191312.06089 6.829EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6826      0   1 4.5751  26406.554428.868EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6824   6870   2 34.63949.408 52554 96102EQUIV.                      998                                                                                                                               Equivalente serie
+ 6824  44841   1T47.284 11809204464414629EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6824      0   1  76437196176  253386.544EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6764   6824   1T 14046 2444213896.19945.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6764   6870   1T75.688 1702823318.29393.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6764  44841   1 29.674 2311488093117127.EQUIV.                      998                                                                                                                               Equivalente serie
+ 6764      0   1 1.544728.745.661397.3462EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6763   7015   1T.81396 5.3813.909515.202EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6763   7762   1T 14460 3276485546310470.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6763  83001   1 30.217  8789 54458 90455EQUIV.                      998                                                                                                                               Equivalente serie
+84000   6763   2  25479 56959396494661901EQUIV.                      998                                                                                                                               Equivalente serie
+ 6763      0   1 33.727 130831.559619.177EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6762   7015   1T49.273 22299 32045118765EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6762      0   1  56894133496.0215114.232EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6761   6764   1 2.604650.89893.332 49119EQUIV.                      998                                                                                                                               Equivalente serie
+ 6761   6824   1T 40203 55979.168E6.201E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6761   6870   1T 14032 2965648083.70496.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6761  44841   1  17656 63756.335E6.429E6EQUIV.                      998                                                                                                                               Equivalente serie
+ 6761      0   1 241040945446.000368.8815EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  6757      0   1  0.0752.4025.04799.84069EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6747   6761   2  26931140635.228E6.274E6EQUIV.                      998                                                                                                                               Equivalente serie
- 6747   6764   1   116466.836 15533 41555EQUIV.                      998                                                                                                                               Equivalente serie
- 6747   6824   1T 13636 41880379779839005EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6747   6870   1T53.768 27091216836528783EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6747      0   1 .048596.31210.1495 2.948EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  6731   6764   1 2.733211.98726.53663.299EQUIV.                      998                                                                                                                               Equivalente serie
  6731      0   1 1.061623.3750.838710.405EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6627   6747   1 .854285.351213.89437.318EQUIV.                      998                                                                                                                               Equivalente serie
- 6627   6761   1 15.50270.106 14154 51703EQUIV.                      998                                                                                                                               Equivalente serie
- 6627   6763   1 25.14568.331 35562 53936EQUIV.                      998                                                                                                                               Equivalente serie
- 6627   6764   1 .824284.46293.239511.433EQUIV.                      998                                                                                                                               Equivalente serie
- 6627   6824   1T21.10259.444 19850 58008EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6627   6826   1T12778913287439623.42613.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6627   6870   1T8.937239.308 12192 40559EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6627   7015   1T1.640410.8528.604227.505EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6627   7762   1T12.452  5246 26536 53580EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6627   7820   1 140170239408.235E6.174E6EQUIV.                      998                                                                                                                               Equivalente serie
- 6627  83001   1 47.796 13588 64806114062EQUIV.                      998                                                                                                                               Equivalente serie
- 6627  84000   1  34921 69700418744725611EQUIV.                      998                                                                                                                               Equivalente serie
- 6627      0   1  2.09220.699.226484.1474EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6664      0   1 0.05014.4793.039832.0016EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6627   6761   1 60.009 4051885125719816.EQUIV.                      998                                                                                                                               Equivalente serie
+ 6627   6762   1 17.87170.73158.805 26410EQUIV.                      998                                                                                                                               Equivalente serie
+ 6627   6763   1 25.17868.668 35553 53951EQUIV.                      998                                                                                                                               Equivalente serie
+ 6627   6764   1 1.38487.7158 5.76819.461EQUIV.                      998                                                                                                                               Equivalente serie
+ 6627   6824   1T 26729 5862488910315931.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6627   6870   1T 17084 4711322964.32700.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6627   7015   1T1.635110.9038.5982  2751EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6627   7762   1T12.43352.529 26622 53763EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6627  44841   1 14.279 5049250814112806.EQUIV.                      998                                                                                                                               Equivalente serie
+ 6627  83001   1 47.837 13670 64781114094EQUIV.                      998                                                                                                                               Equivalente serie
+ 6627  84000   1  34993 70188418581725821EQUIV.                      998                                                                                                                               Equivalente serie
+ 6627      0   1  2.94224.737.635039.6058EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  6626   6826   1T 46333 7341210722.21189.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6626   7015   1 371979574859999999999999EQUIV.                      998                                                                                                                               Equivalente serie
  6626   7762   1 15.378  5446138359212284EQUIV.                      998                                                                                                                               Equivalente serie
  6626   7766   1 .165952.21214.975411.713EQUIV.                      998                                                                                                                               Equivalente serie
  6626   7820   1T.579293.8122 7.60420.315EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6626  83001   1T 6272513674262017.96212.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6626      0   1 .052171.7102.07129.90188EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6619   6627   1 .353981.8968 2.121 6.661EQUIV.                      998                                                                                                                               Equivalente serie
- 6619   6747   1 .09314.53014.369461.3773EQUIV.                      998                                                                                                                               Equivalente serie
- 6619   6761   1 .728023.58093.276411.678EQUIV.                      998                                                                                                                               Equivalente serie
- 6619   6763   1 12662327492742725.64411.EQUIV.                      998                                                                                                                               Equivalente serie
- 6619   6764   1 4.255722.04423.93374.454EQUIV.                      998                                                                                                                               Equivalente serie
- 6619   6824   1T19.24560.254 13102 41006EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6619   6870   1T0.31047.3928.136949.2612EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6619   7015   1T 10359 44435103853328780EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6619   7762   1T417062661230.133E6.214E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6619  83001   1 21479244259270861. .12E6EQUIV.                      998                                                                                                                               Equivalente serie
- 6619      0   1 .5343816.966.138633.5583EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6616   6619   1 .764014.07953.474812.949EQUIV.                      998                                                                                                                               Equivalente serie
- 6616   6627   1 7.4347 10463 39445155473EQUIV.                      998                                                                                                                               Equivalente serie
- 6616   6747   1 44.131 9524012397.33812.EQUIV.                      998                                                                                                                               Equivalente serie
- 6761   6616   2 3.4412  6684 12539 63677EQUIV.                      998                                                                                                                               Equivalente serie
- 6616   6764   1 5.287864.544 15430 69132EQUIV.                      998                                                                                                                               Equivalente serie
- 6616   6824   1T 13141 29152463325986975EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6616   6870   1T  2840 11997112828296687EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6616      0   1  26652460309-.00439.1132EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6306   7719   1T 7329712132934831.58376.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6617   6627   1 5.4611 6878443137711153.EQUIV.                      998                                                                                                                               Equivalente serie
+ 6617   6761   1 45.864 4479888862523942.EQUIV.                      998                                                                                                                               Equivalente serie
+ 6617   6764   1 20.018 2549846550810218.EQUIV.                      998                                                                                                                               Equivalente serie
+ 6617   6824   1T22.21279.78783.396 31702EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6617   6870   1T3.138125.59717.19390.146EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6617  44841   1 -9.078 11459 17758102246EQUIV.                      998                                                                                                                               Equivalente serie
+ 6617      0   1 -.8414 21853-.10968.4167EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6616   6617   1  -1748 17358 12776 98131EQUIV.                      998                                                                                                                               Equivalente serie
+ 6616   6627   1 30.168 34047104051426043EQUIV.                      998                                                                                                                               Equivalente serie
+ 6761   6616   2 3.441767.013 12539 63678EQUIV.                      998                                                                                                                               Equivalente serie
+ 6616   6764   1 5.504766.903 15764 70932EQUIV.                      998                                                                                                                               Equivalente serie
+ 6616   6824   1T 13989 3019449817410322.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6616   6870   1T30.158 12348120390307966EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+44657   6616   2 .573588.85152.314816.736EQUIV.                      998                                                                                                                               Equivalente serie
+ 6616  44841   1 40.212 3698012348.30275.EQUIV.                      998                                                                                                                               Equivalente serie
+ 6616      0   1  79679618934-.0024 9.115EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6615   6616   1 12.596 13322 65118236441EQUIV.                      998                                                                                                                               Equivalente serie
+ 6615   6617   2 -7.23280.23254.536 36558EQUIV.                      998                                                                                                                               Equivalente serie
+ 6627   6615   4 .937884.86873.939913.663EQUIV.                      998                                                                                                                               Equivalente serie
+ 6615   6761   1 35.323 1829058446312791.EQUIV.                      998                                                                                                                               Equivalente serie
+ 6615   6764   1 1.23536.29943.538914.903EQUIV.                      998                                                                                                                               Equivalente serie
+ 6615   6824   1T21.76363.847 15065 51010EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6615   6870   1T14.52356.866 47101114172EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6615  44841   2 -3.57751.17862.387 39426EQUIV.                      998                                                                                                                               Equivalente serie
+ 6615      0   1 -3.169 43835-0.0066.7586EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  6306   7723   1T7.403422.49597.343 25830EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6306   7751   1T176388267985.125E6.197E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 6306   7752   1T13516920749782095..135E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6306   7766   1T 26672 4458986247115073.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6306   7802   1T28.81160.726 48490 89380EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6306   7809   1  21495 2993186428413053.EQUIV.                      998                                                                                                                               Equivalente serie
- 6306   7820   1T13593917596686703.78273.EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6306   7823   1T 19056 35472264957483935EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6306      0   1 2.851118.451 1.5619.5095EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6295  99137   1T   135  38302.465832.348EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
+ 6295      0   1 999999999999-82013-27538EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  6293      0   1 8.648699.81521.92398.459EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  6281   6293   1T75.742 11236123402198907EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6281      0   1   2010 24630.7233914.599EQUIV.                      998        YN                                                                                                                     Equivalente shunt
@@ -1075,7 +1088,7 @@ DCIR
  6211   6281   1T 12916 17312428270480665EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  6211   6293   1 54.57374.159 91742114084EQUIV.                      998                                                                                                                               Equivalente serie
  6211      0   1 3.5028  386911.14443.138EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 6200      0   1 999999999999.6E-11-83330EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 6200      0   1 999999999999.9E-11-83330EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  6185      0   1 999999999999   137  2813EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  6181      0   1 999999999999   596  8520EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  6180   6763   1T6.020317.80159.095 12014EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
@@ -1092,18 +1105,11 @@ DCIR
  6110      0   1     0. 19091.7626515.029EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  6108      0   1 9999999999994.008943.527EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  6091      0   1    45066.52515.483  7430EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 3696   6626   1 235695729413999999999999EQUIV.                      998                                                                                                                               Equivalente serie
- 3696   6627   1T 52326123958.289E6.384E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 3696   7015   1  79981195038999999999999EQUIV.                      998                                                                                                                               Equivalente serie
  3696   7762   1T2.901320.816 27657 92518EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 3696   7820   1 343755633820999999999999EQUIV.                      998                                                                                                                               Equivalente serie
  3696      0   1 .149091.4881 1.0556.5099EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  3654   3696   1T.865336.7898181035272345EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  3654   6626   1T.196032.918334.92183.375EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 3654   6627   1T 41450111973.313E6.385E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 3654   7015   1  65170180857999999999999EQUIV.                      998                                                                                                                               Equivalente serie
  3654   7762   1T2.400725.435153776319558EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
- 3654   7820   1T335017671688-.16E5-.17E6EQUIV.                      998        YN            YN                                                                                                       Equivalente serie
  3654      0   1 .02696.64521.198061.3137EQUIV.                      998        YN                                                                                                                     Equivalente shunt
 99999
 DMUT
@@ -1121,6 +1127,9 @@ DMUT
  7740   7808   1 7740   7917   1   109   349
  6619   6673   1 7732   7748   1    10    14
  6619   6673   1 7739   6763   1    25    48
+ 6615   6664   1 6617   6619   1    24    76
+ 6615   6664   1 6619   6664   1    13    42
+ 6615   6617   1 6615   6664   1    45   142
  6763   7749   1 6628   7748   1   127   334
  6763   7749   1 7732   7748   1   273   713
  6747   6761   1 6870   6951   1     4   133

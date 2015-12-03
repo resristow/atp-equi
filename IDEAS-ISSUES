@@ -1,0 +1,7 @@
+ISSUES:
+001 - Se o número de barras de fronteira do equivalente difere da lista de nomes de atp que o usuário entrou, o programa quebra;
+
+
+IDEAS:
+001 - Implementar um modo batch em vez de ficar pedindo coisa por pop-up, no melhor estilo ATP
+002 - Sugerir nomes de barras de atp

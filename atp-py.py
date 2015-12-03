@@ -6,70 +6,153 @@ from pathlib import Path
 
 import sys
 
+rela = Path('RELATORIO_SAIDA.txt').open('w')
 
-
-class node():
-    """
-    Classe para definir os nos/barras do equivalente
-    """
+class Nodes:
+    "Coleção de barras do equivalente"
     def __init__(self):
+        self.nodes = {}
+        self.repATP = set()
+
+    def addNode(self, node):
+        self.nodes[node.numAna] = node
+
+    def get_nomeAna(self, numAna):
+        return self.nodes[numAna].nomeAna
+
+    def get_vBase(self, numAna):
+        return self.nodes[numAna].vBase
+
+    def get_nomeAtp(self, numAna):
+        return self.nodes[numAna].nomeAtp
+
+    def get_nomeGerAtp(self, numAna):
+        return self.nodes[numAna].nomeGerAtp
+
+    def get_repATP(self):
+        return self.repATP
+
+    def alter(self, numAna = 0, dado = '', attr='nomeAna'):
+        if dado != '':
+            if attr == 'nomeAna': self.nodes[numAna].nomeAna = dado
+            if attr == 'Vbase': self.nodes[numAna].Vbase = dado
+            if attr == 'nomeAtp': self.nodes[numAna].nomeAtp = dado
+            if attr == 'nomeGerAtp': self.nodes[numAna].nomeGerAtp = dado
+
+    def get_all(self):
+        return self.nodes
+
+    def check_repGerATP(self):
+        repGerATP = set()
+
+        for barra in self.get_all().keys():
+            if self.get_nomeGerAtp(barra) != '':
+                if self.get_nomeGerAtp(barra) in repGerATP: 
+                    self.alter(numAna = barra, attr = 'nomeGerAtp', dado = 'F' + self.get_nomeGerAtp(barra)[:-1])
+                    self.check_repGerATP()
+                repGerATP.add(self.get_nomeGerAtp(barra))
+
+    def check_repATP(self):
+        tempRep = set()
+
+        for barra in self.get_all().keys():
+            if self.get_nomeAtp(barra) != '':
+                if self.get_nomeAtp(barra) in tempRep:
+                    self.repATP.add(self.get_nomeAtp(barra))
+                tempRep.add(self.get_nomeAtp(barra))
+
+
+
+class node:
+    """
+    Classe interna para definir os nos/barras do equivalente.
+    """
+    def __init__(self, linha=''):
         self.numAna = 0
         self.vBase = 0.0
         self.nomeAna = ''
         self.nomeAtp = ''
         self.nomeGerAtp = ''
+        self.addLinha(linha=linha)
 
-    def splitIt(self, linha):
-        self.numAna = int(linha[0:5])
-        try: self.vBase = float(linha[31:35])
-        except(ValueError): pass
-        self.nomeAna = linha[9:21].strip()
+    def addLinha(self, linha):
+        "Identifica e separa os valores da linha do DBAR do .ANA"
+        if linha != '':
+            self.numAna = int(linha[0:5])
+            try: self.vBase = float(linha[31:35])
+            except(ValueError): pass
+            self.nomeAna = linha[9:21].strip()
 
 
-
-class branch():
-    """
-    """
+class Branches:
     def __init__(self):
-        self.nodeFrom = 0
-        self.nodeTo = 0
+        self.branches = {}
+
+    def addBranch(self, branch):
+        self.branches[branch.nodes] = branch
+
+    def get_equiNodes(self):
+        barrasEquiv = set()
+
+        for n in self.branches.values():
+            for no in range(2):
+                barrasEquiv.add(n.nodes[no])
+        return sorted(barrasEquiv)
+
+    def get_tipo(self, node):
+        return self.branches[node].tipo
+
+    def get_all(self): return self.branches.values()
+
+
+class branch:
+    """
+    """
+    def __init__(self, linha):
+        self.nodes = (0,0)
         self.tipo = ''
         self.params = {'r1':0, 'x1':0, 'r0':0, 'x0':0}
+        self.addLinha(linha=linha)
 
-    def divideIt(self, linha):
-        self.nodeFrom = int(linha[0:5])
-        self.nodeTo = int(linha[7:12])
-        self.tipo = linha[16]
-        try:
-            if '.' in linha[17:23]: self.params['r1'] = float(linha[17:23])
-            else: self.params['r1'] = float(linha[17:23])/100
-        except(ValueError):self.params['r1'] = 0
-        try:
-            if '.' in linha[23:29]: self.params['x1'] = float(linha[23:29])
-            else: self.params['x1'] = float(linha[23:29])/100
-        except(ValueError): self.params['x1'] = 0
-        try:
-            if '.' in linha[29:35]: self.params['r0'] = float(linha[29:35])
-            else: self.params['r0'] = float(linha[29:35])/100
-        except(ValueError): self.params['r0'] = 0
-        try:
-            if '.' in linha[35:41]: self.params['x0'] = float(linha[35:41])
-            else: self.params['x0'] = float(linha[35:41])/100
-        except(ValueError): self.params['x0'] = 0
+    def addLinha(self, linha):
+        "Identifica e separa os valores da linha de equivalente do DLIN do .ANA"
+        if linha != '':
+            self.nodes = int(linha[0:5]), int(linha[7:12])
 
+            try:
+                if '.' in linha[17:23]: self.params['r1'] = float(linha[17:23])
+                else: self.params['r1'] = float(linha[17:23])/100
+            except(ValueError):self.params['r1'] = 0
+            try:
+                if '.' in linha[23:29]: self.params['x1'] = float(linha[23:29])
+                else: self.params['x1'] = float(linha[23:29])/100
+            except(ValueError): self.params['x1'] = 0
+            try:
+                if '.' in linha[29:35]: self.params['r0'] = float(linha[29:35])
+                else: self.params['r0'] = float(linha[29:35])/100
+            except(ValueError): self.params['r0'] = 0
+            try:
+                if '.' in linha[35:41]: self.params['x0'] = float(linha[35:41])
+                else: self.params['x0'] = float(linha[35:41])/100
+            except(ValueError): self.params['x0'] = 0
+
+            if (self.nodes[1] == 0) and (int(self.params['r1']) != 9999):
+                self.tipo = 'G'
+            else: self.tipo = linha[16]
 
 
 
 
 # FUNÇÕES ---------------------------------------------------------------------#
 
-def get_DBAR(arquivo):
+def get_DBAR(arquivo, colecao):
 
     flag = 0
-    dbar = []
+    dbar = colecao
 
-    dbar.append(node())
-    dbar[-1].nomeAna = 'Terra'
+
+    dbar.addNode(node())
+    dbar.alter(dado = 'Terra')
 
     for linha in arquivo:
         if (flag == 3) & ('99999' in linha): 
@@ -78,22 +161,37 @@ def get_DBAR(arquivo):
         if (flag == 1) and not ('(' in linha[0]):
             flag = flag | 2  
         if flag == 3:
-            dbar.append(node())
-            dbar[-1].splitIt(linha)
+            dbar.addNode(node(linha))
         if 'DBAR' in linha[0:4]: flag = flag | 1
 
-    return dict(zip([node.numAna for node in dbar], dbar))
+    return dbar
 
-def get_EQUIV(arquivo):
+def get_EQUIV(arquivo, colecao):
     flag = 0
-    equiv = []
+    equiv = colecao
     for linha in arquivo:
         if '998' in linha[65:75]:
-            equiv.append(branch())
-            equiv[-1].divideIt(linha)
+            equiv.addBranch(branch(linha))
             flag = 1
         if (flag == 1) and ('99999' in linha[0:6]): break
     return equiv
+
+def get_ATP(arquivo, dbar, equiv, barrasEquiv):
+
+
+    for barra in barrasEquiv:
+        nomeATP = arquivo.readline().strip()
+        dbar.alter(numAna = barra, dado = nomeATP, attr = 'nomeAtp')
+        try: 
+            if equiv.get_tipo((barra,0)) == 'G':
+                dbar.alter(numAna = barra, dado = 'F' + nomeATP[:-1], attr = 'nomeGerAtp')
+        except: pass
+
+
+    dbar.check_repGerATP() 
+
+    dbar.check_repATP()
+
 
 def percentOhm(params, vbas):
     paramsOhm = []
@@ -171,14 +269,7 @@ def writeEqui(linha, numTrf, tipo = 'geral'):
 
     file_EQUI.write('C ' + 77*'=' + '\n')
 
-def repeteco():
-    repATP = set()
 
-    for barra in gerATP.keys():
-        if gerATP[barra] in repATP: 
-            gerATP[barra] = 'F' + gerATP[barra][:-1]
-            repeteco()
-        repATP.add(gerATP[barra])
 
 
 def main():
@@ -203,71 +294,68 @@ def main():
         
     # LISTA DE BARRAS --------------------------------------------------#
 
-    dbar = get_DBAR(arqAna.open('r'))
 
+    dbar = get_DBAR(arqAna.open('r'), Nodes())
 
 
     # LISTA DE EQUIVALENTES -------------------------------------------------------#
 
-    equivLista = get_EQUIV(arqAna.open('r'))
+    equiv = get_EQUIV(arqAna.open('r'), Branches())
 
+    barrasEquiv = equiv.get_equiNodes()[1:]
+
+
+    get_ATP(Path('./testes/nomes atp.txt').open('r'), dbar, equiv, barrasEquiv)    
 
     # valsOhm = percentOhm(equivLista, dbar[1])
 
-    # IMPRESSAO DE BARRAS QUE POSSUEM EQUIVALENTES
+    ExecOK = 0
 
-    barrasEquiv = set()
+    relaNotOk = """
+O arquivo ATP não chegou a ser lido. Para auxiliar o usuário a elaborar a 
+lista com os nomes, segue abaixo a relação de barras que possuem equivalentes
+conectados:
+"""
 
-    for n in equivLista: 
-        barrasEquiv.add(n.nodeFrom)
-        barrasEquiv.add(n.nodeTo)
-    barrasEquiv = sorted(barrasEquiv)
+    relaAna = """
+Leitura do arquivo .ANA de equivalentes feita com sucesso. O total de barras 
+que possuem circuitos equivalentes conectados é {}.
+""".format(len(barrasEquiv))
+
+    relaATPok = """
+Leitura do arquivo com os nomes de nó para o ATP feita com sucesso. Não há 
+barras repetidas. A lista de número de barra e nome do .ANA e seus respec-
+tivos nomes do ATP é dada abaixo:
+"""
+
+    relaATPnotOk = """
+Leitura do arquivo com os nomes de nó para o ATP feita com sucesso. Foram
+detectadas {} barras repetidas. São elas: {} . A lista de número de
+barra e nome do .ANA e seus respectivos nomes do ATP é dada abaixo:
+""".format(len(dbar.get_repATP()), dbar.get_repATP())
 
 
-    print('{0:>6s} {1:<11s} {2:>6s}'.format(*ajuda.texto('cabecalho', query='list')))
+
+
+    rela.write(relaAna)
+    if ExecOK == 0:
+        rela.write(relaNotOk + '{0:>6s} {1:<11s} {2:>6s}\n'\
+            .format(*ajuda.texto('cabecalho', query='list')))
+        for barra in barrasEquiv:
+            rela.write('{0:>6d} {1:<12s} {2!s:>6}\n'.format(barra, dbar.get_nomeAna(barra), dbar.get_vBase(barra)))
+    if len(dbar.get_repATP()) == 0: rela.write(relaATPok)
+    else:
+        rela.write(relaATPnotOk)
     for barra in barrasEquiv:
-        print('{0:>6d} {1:<12s} {2!s:>6}'.format(barra, dbar[barra].nomeAna, dbar[barra].vBase))
-    print(' ')
-    print(ajuda.texto('barrasTot', query='string'), len(barrasEquiv))
+        rela.write('{0:>6d}{1:<12s}{2:>6}{3:>6} \n'.format(barra, dbar.get_nomeAna(barra), dbar.get_nomeAtp(barra), dbar.get_nomeGerAtp(barra)))
 
     # INSERÇÃO DA LISTA DE NOMES PARA ATP PELO USUÁRIO ------------------------#
 
-    arqAtp = Path('.\\testes\\nomes atp.txt')
-
-    barrasATP = {0:'      '}
-    cont = 1
-    for barra in arqAtp.open('r'):
-        barrasATP[barrasEquiv[cont]] = barra.strip()
-        cont += 1
-
-
-    #composição de nome auxiliares para geração no ATP
-
-    gerATP = {}
-
-    fontesATP = dict(barrasATP)
-    for key in fontesATP.keys(): fontesATP[key] = ''
-
-
-    for linha in range(len(equivLista[0])):
-        if (equivLista[1][linha] == 0) and (equivLista[3][linha] != 9999.99):
-            gerATP[linha] = 'F' + barrasATP[equivLista[0][linha]][:-1]
-            fontesATP[equivLista[0][linha]] = gerATP[linha]
-
-    repeteco() 
 
 
 
-    with open('FONTES.TXT','w') as fontes:
-        fontes.write('Lista dos nomes dos nós que possuem fontes\n')
-        for barra in gerATP.keys():
-            fontes.write(gerATP[barra] + '{0:>6s}'.format(str(dbar[1][equivLista[0][barra]])) + '\n')
+    sys.exit()
 
-    with open('FRONTEIRA.TXT','w') as front:
-        front.write('Barras de Fronteira e seus nomes de ATP\n')
-        front.write('{0:<9s}{1:<15s}{2:<9s}{3:<5s}\n'.format('NB', 'ANAFAS', 'ATP', 'FONTE'))
-        for barra in barrasEquiv:
-            front.write('{0:<9s}{1:<15s}{2:<9s}{3:<5s}\n'.format(str(barra), dbar[0][barra], barrasATP[barra], fontesATP[barra]))
 
     file_EQUI = open('equivalente.lib','w')
 
