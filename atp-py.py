@@ -1,12 +1,29 @@
 import ajuda
-import tkinter
-from tkinter import filedialog
 import textwrap
 from pathlib import Path
+import argparse
 
-import sys
 
-rela = Path('RELATORIO_SAIDA.txt').open('w')
+parser = argparse.ArgumentParser(description='Cria um equivalente para o ATP', 
+                prog='ATP-EQUI')
+parser.add_argument('-c','--comando', default='equi', metavar='Comando', 
+                help='Especifica que operacao deve ser feita')
+parser.add_argument('arqAna', default='equi.ana', metavar='.ANA', nargs='?', 
+                help='Especifica o nome do arquivo .ANA para leitura')
+parser.add_argument('arqAtp', default='nomes atp.txt', metavar='Nomes ATP', 
+                nargs='?', help='Especifica o nome do arquivo com os nomes de barras do ATP')
+parser.add_argument('--rela', default='RELATORIO_SAIDA.txt', 
+                metavar='arquivo', help='Especifica o nome do arquivo de relatório de saída')
+parser.add_argument('--lib', default='equivalente.lib', metavar='.lib', 
+                help='Especifica o nome do arquivo de equivalente .lib que será gerado')
+
+args = parser.parse_args()
+
+arqPaths = {'Lib' : Path(args.lib),
+            'Rela' : Path(args.rela),
+            'Ana' : Path(args.arqAna),
+            'Atp' : Path(args.arqAtp)}
+
 
 class Nodes:
     "Coleção de barras do equivalente"
@@ -88,8 +105,12 @@ class Branches:
     def __init__(self):
         self.branches = {}
 
-    def addBranch(self, branch):
+    def addBranch(self, branch, dbar):
         self.branches[branch.nodes] = branch
+        for n in branch.paramsOhm:
+            if branch.params[n] == 9999.99:
+                branch.paramsOhm[n] = 999999
+            else: branch.paramsOhm[n] = branch.params[n] * dbar.get_vBase(branch.nodes[0])**2/10000
 
     def get_equiNodes(self):
         barrasEquiv = set()
@@ -112,6 +133,7 @@ class branch:
         self.nodes = (0,0)
         self.tipo = ''
         self.params = {'r1':0, 'x1':0, 'r0':0, 'x0':0}
+        self.paramsOhm = {'r1':0, 'x1':0, 'r0':0, 'x0':0}
         self.addLinha(linha=linha)
 
     def addLinha(self, linha):
@@ -136,7 +158,7 @@ class branch:
                 else: self.params['x0'] = float(linha[35:41])/100
             except(ValueError): self.params['x0'] = 0
 
-            if (self.nodes[1] == 0) and (int(self.params['r1']) != 9999):
+            if (self.nodes[1] == 0) and (self.params['r1'] != 9999.99):
                 self.tipo = 'G'
             else: self.tipo = linha[16]
 
@@ -166,20 +188,20 @@ def get_DBAR(arquivo, colecao):
 
     return dbar
 
-def get_EQUIV(arquivo, colecao):
+def get_EQUIV(arquivo, colecao, dbar):
     flag = 0
     equiv = colecao
     for linha in arquivo:
         if '998' in linha[65:75]:
-            equiv.addBranch(branch(linha))
+            equiv.addBranch(branch(linha), dbar)
             flag = 1
         if (flag == 1) and ('99999' in linha[0:6]): break
     return equiv
 
-def get_ATP(arquivo, dbar, equiv, barrasEquiv):
+def get_ATP(arquivo, dbar, equiv):
 
 
-    for barra in barrasEquiv:
+    for barra in equiv.get_equiNodes()[1:]:
         nomeATP = arquivo.readline().strip()
         dbar.alter(numAna = barra, dado = nomeATP, attr = 'nomeAtp')
         try: 
@@ -205,160 +227,127 @@ def percentOhm(params, vbas):
                 paramsOhm[params[3:].index(item)].append(str(valor*base/100)[:6])
     return paramsOhm
 
-def makeEqui():
-    file_EQUI.write('/BRANCH\n')
-    numTrf = 0
+def makeEqui(arquivo, equiv, dbar):
+    arquivo = arquivo.open('w')
+    arquivo.write('/BRANCH\n')
+    numTrf = 1
 
-    for linha in range(len(equivLista[0])):
+    for branch in equiv.get_all():
+        arquivo.write('C ' + 77*'=' + '\n' + 'C =====' + 
+            dbar.get_nomeAna(branch.nodes[0]) + ' - ' + 
+            dbar.get_nomeAna(branch.nodes[1]) + '\n')
 
-        tipo = 'geral'
-        if equivLista[2][linha] == 'T':
-            tipo = 'trafo'
+        nodeFrom = [str(dbar.get_nomeAtp(branch.nodes[0]))+'A',
+                    str(dbar.get_nomeAtp(branch.nodes[0]))+'B',
+                    str(dbar.get_nomeAtp(branch.nodes[0]))+'C']
+
+        if branch.tipo == 'G':
+            nodeTo = [str(dbar.get_nomeGerAtp(branch.nodes[0]))+'A',
+                    str(dbar.get_nomeGerAtp(branch.nodes[0]))+'B',
+                    str(dbar.get_nomeGerAtp(branch.nodes[0]))+'C']
+
+        elif branch.nodes[1] == 0:
+            nodeTo = [' '*6 for n in range(3)]
+
+        elif branch.tipo == 'T':
+             nodeTo = [str(numTrf)+'TIEA',
+                        str(numTrf)+'TIEB',
+                        str(numTrf)+'TIEC']
+
+        else:
+            nodeTo = [str(dbar.get_nomeAtp(branch.nodes[1]))+'A',
+                    str(dbar.get_nomeAtp(branch.nodes[1]))+'B',
+                    str(dbar.get_nomeAtp(branch.nodes[1]))+'C'] 
+
+        arquivo.write('51{}{:6}'.format(nodeFrom[0],nodeTo[0]) + 12*' ' + 
+            '{0!s:<.6}'.format(branch.paramsOhm['r0']) + 6*' ' +
+            '{0!s:<.12}'.format(branch.paramsOhm['x0']) + '\n')
+        arquivo.write('52{}{:6}'.format(nodeFrom[1],nodeTo[1]) + 12*' ' + 
+            '{0!s:<.6}'.format(branch.paramsOhm['r1']) + 6*' ' +
+            '{0!s:<.12}'.format(branch.paramsOhm['x1']) + '\n')
+        arquivo.write('53' + nodeFrom[2] + nodeTo[2] + '\n')
+
+        if branch.tipo == 'T':
+
+
+            arquivo.write('  TRANSFORMER' + 25*' ' + 'ATIE'+
+                '{0:<2s}'.format(str(numTrf))+'1.E6\n')
+            arquivo.write(' '*12 + '9999' + '\n')
+            arquivo.write(' 1'+'{0:<6s}'.format(str(numTrf)+'TIEA') + ' '*18 +
+                         '.00001.00001'+str(dbar.get_vBase(branch.nodes[0])) + '\n')
+            arquivo.write(' 2'+ dbar.get_nomeAtp(branch.nodes[1]) +'A' + ' '*18 +
+                         '.00001.00001'+str(dbar.get_vBase(branch.nodes[1]))+ '\n')
+
+            arquivo.write('  TRANSFORMER ATIE'+'{0:<2s}'.format(str(numTrf)) + 
+                        ' '*18 + '{0:<6s}'.format('BTIE'+str(numTrf))+'\n')
+            arquivo.write(' 1'+'{0:<6s}'.format(str(numTrf) + 'TIEB') + '\n')
+            arquivo.write(' 2'+dbar.get_nomeAtp(branch.nodes[1])+'B' + '\n')
+
+            arquivo.write('  TRANSFORMER ATIE'+'{0:<2s}'.format(str(numTrf)) + 
+                        ' '*18 + '{0:<6s}'.format('CTIE'+str(numTrf))+'\n')
+            arquivo.write(' 1'+'{0:<6s}'.format(str(numTrf) + 'TIEC') + '\n')
+            arquivo.write(' 2'+dbar.get_nomeAtp(branch.nodes[1])+'C' + '\n')
+
             numTrf += 1
-        elif linha in gerATP.keys(): tipo = 'gerador'
 
-        writeEqui(linha, numTrf, tipo)
+def emiteRela(arquivo, status, dbar, equiv):
+    rela = arquivo.open('w')
 
+    if status['ana'] != 0: barrasEquiv = equiv.get_equiNodes()[1:]
+
+    if status['ana'] == 0:
+        rela.write(ajuda.texto('relaErroArq').format('.ANA', Path.cwd()/arqPaths['Ana']))
+
+    elif status['atp'] == 0:
+        rela.write(ajuda.texto('relaErroArq').format('com os nomes do ATP', Path.cwd()/arqPaths['Atp']))
+
+    elif status['diff'] > 0:
+        rela.write(ajuda.texto('relaErroDiff').format(status['diff']))
+
+    elif args.comando == 'equi':
         
+        rela.write(ajuda.texto('relaEqui').format(Path.cwd()/arqPaths['Lib'], len(barrasEquiv)))
+        rela.write('{:^6}{:^15}{:^10}{:^10}\n'.format(*ajuda.texto('cabecalhoF', query='list')))
+        for barra in barrasEquiv:
+            rela.write('{:^6d}{:^15}{:^11}{:^11}\n'.format(barra, dbar.get_nomeAna(barra), dbar.get_nomeAtp(barra), dbar.get_nomeGerAtp(barra)))
 
-def writeEqui(linha, numTrf, tipo = 'geral'):
+    elif args.comando == 'barras':
+        barrasEquiv = equiv.get_equiNodes()[1:]
+        rela.write(ajuda.texto('relaBarra').format(len(barrasEquiv)))
 
-    if tipo == 'geral':
-        file_EQUI.write('C =====' + dbar[0][equivLista[0][linha]] + ' - ' + dbar[0][equivLista[1][linha]] + '\n')
-        if equivLista[1][linha] != 0:
-            file_EQUI.write('51' + barrasATP[equivLista[0][linha]] + 'A' + barrasATP[equivLista[1][linha]] + 'A' + 12*' ' \
-                + '{0:<6s}'.format(valsOhm[2][linha]) + 6*' ' + '{0:<12s}'.format(valsOhm[3][linha]) + '\n')
-            file_EQUI.write('52' + barrasATP[equivLista[0][linha]] + 'B' + barrasATP[equivLista[1][linha]] + 'B' + 12*' ' \
-                + '{0:<6s}'.format(valsOhm[0][linha]) + 6*' ' + '{0:<12s}'.format(valsOhm[1][linha]) + '\n')
-            file_EQUI.write('53' + barrasATP[equivLista[0][linha]] + 'C' + barrasATP[equivLista[1][linha]] + 'C\n')
-        else: 
-            file_EQUI.write('51' + barrasATP[equivLista[0][linha]] + 'A' + barrasATP[equivLista[1][linha]] + 12*' ' \
-                + '{0:<6s}'.format(valsOhm[2][linha]) + 6*' ' + '{0:<12s}'.format(valsOhm[3][linha]) + '\n')
-            file_EQUI.write('52' + barrasATP[equivLista[0][linha]] + 'B' + barrasATP[equivLista[1][linha]] + 12*' ' \
-                + '{0:<6s}'.format(valsOhm[0][linha]) + 6*' ' + '{0:<12s}'.format(valsOhm[1][linha]) + '\n')
-            file_EQUI.write('53' + barrasATP[equivLista[0][linha]] + 'C' + barrasATP[equivLista[1][linha]] + '\n')
-
-    elif tipo == 'gerador':
-        file_EQUI.write('C =====' + dbar[0][equivLista[0][linha]] + ' - ' + dbar[0][equivLista[1][linha]] + '\n')
-
-        file_EQUI.write('51' + gerATP[linha] + 'A' + barrasATP[equivLista[0][linha]] + 'A' + 12*' ' \
-            + '{0:<6s}'.format(valsOhm[2][linha]) + 6*' ' + '{0:<12s}'.format(valsOhm[3][linha]) + '\n')
-        file_EQUI.write('52' + gerATP[linha] + 'B' + barrasATP[equivLista[0][linha]] + 'B' + 12*' ' \
-            + '{0:<6s}'.format(valsOhm[0][linha]) + 6*' ' + '{0:<12s}'.format(valsOhm[1][linha]) + '\n')
-        file_EQUI.write('53' + gerATP[linha] + 'C' + barrasATP[equivLista[0][linha]] + 'C\n')
-
-        
-
-    elif tipo == 'trafo':
-        file_EQUI.write('C =====' + dbar[0][equivLista[0][linha]] + ' - ' + dbar[0][equivLista[1][linha]] + '\n')
-        file_EQUI.write('51' + barrasATP[equivLista[0][linha]] + 'A' + '{0:<6s}'.format(str(numTrf) + 'TIEA') + 12*' ' \
-            + '{0:<6s}'.format(valsOhm[2][linha]) + 6*' ' + '{0:<12s}'.format(valsOhm[3][linha]) + '\n')
-        file_EQUI.write('52' + barrasATP[equivLista[0][linha]] + 'B' + '{0:<6s}'.format(str(numTrf) + 'TIEB') + 12*' ' \
-            + '{0:<6s}'.format(valsOhm[0][linha]) + 6*' ' + '{0:<12s}'.format(valsOhm[1][linha]) + '\n')
-        file_EQUI.write('53' + barrasATP[equivLista[0][linha]] + 'C' + '{0:<6s}'.format(str(numTrf) + 'TIEC') + '\n')
-        file_EQUI.write('  TRANSFORMER                         ATIE'+'{0:<2s}'.format(str(numTrf))+'1.E6\n')
-        file_EQUI.write(' '*12 + '9999' + '\n')
-        file_EQUI.write(' 1'+'{0:<6s}'.format(str(numTrf) + 'TIEA') + ' '*19 + '.0001 .0001'+str(dbar[1][equivLista[0][linha]])+ '\n')
-        file_EQUI.write(' 2'+barrasATP[equivLista[1][linha]]+'A' + ' '*19 + '.0001 .0001'+str(dbar[1][equivLista[1][linha]])+ '\n')
-        file_EQUI.write('  TRANSFORMER ATIE'+'{0:<4s}'.format(str(numTrf))+ ' '*16 + 'BTIE'+'{0:<2s}'.format(str(numTrf))+'\n')
-        file_EQUI.write(' 1'+'{0:<6s}'.format(str(numTrf) + 'TIEB') + '\n')
-        file_EQUI.write(' 2'+barrasATP[equivLista[1][linha]]+'B' + '\n')
-        file_EQUI.write('  TRANSFORMER ATIE'+'{0:<4s}'.format(str(numTrf))+ ' '*16 + 'CTIE'+'{0:<2s}'.format(str(numTrf))+'\n')
-        file_EQUI.write(' 1'+'{0:<6s}'.format(str(numTrf) + 'TIEC') + '\n')
-        file_EQUI.write(' 2'+barrasATP[equivLista[1][linha]]+'C' + '\n')
-
-    file_EQUI.write('C ' + 77*'=' + '\n')
-
+        rela.write('{0:^6s} {1:<11s} {2:^6s}\n'\
+            .format(*ajuda.texto('cabecalho', query='list')))
+        for barra in barrasEquiv:
+            rela.write('{0:^6d} {1:<12s} {2!s:^6}\n'.format(barra, dbar.get_nomeAna(barra), dbar.get_vBase(barra)))
 
 
 
 def main():
 
 
-    # LEITURA DO ARQUIVO ORIGINAL -------------------------------------------------#
-
-    # ajuda.texto('welcome')
-    # ajuda.texto('queryArq')
-    # ANA = input()
-    # while ANA != '':
-    #     ajuda.texto('queryArq')
-    #     ANA = input()
-    # else:
-    #     root_ANA = Tk()
-    #     root_ANA.withdraw()
-        # file_ANA = open(filedialog.askopenfilename(),'r')
-        # root_ANA.destroy()
-
-
-    arqAna = Path('./Testes/equi.ana')
+    status = {'ana': 1, 'atp': 1, 'diff': 0}
         
-    # LISTA DE BARRAS --------------------------------------------------#
+
+    try:
+        dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
+        equiv = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
+    except(FileNotFoundError): 
+        status['ana'] = 0
+        dbar, equiv = 0,0
+
+    if args.comando == 'equi':
+        try:
+            get_ATP(arqPaths['Atp'].open('r'), dbar, equiv)
+            diff = abs(len(arqPaths['Atp'].open('r').readlines()) - len(equiv.get_equiNodes()[1:]))
+            if diff > 0: status['diff'] = diff
+        except(FileNotFoundError): status['atp'] = 0
 
 
-    dbar = get_DBAR(arqAna.open('r'), Nodes())
+    emiteRela(arqPaths['Rela'], status, dbar, equiv)
 
 
-    # LISTA DE EQUIVALENTES -------------------------------------------------------#
-
-    equiv = get_EQUIV(arqAna.open('r'), Branches())
-
-    barrasEquiv = equiv.get_equiNodes()[1:]
+    makeEqui(arqPaths['Lib'], equiv, dbar)
 
 
-    get_ATP(Path('./testes/nomes atp.txt').open('r'), dbar, equiv, barrasEquiv)    
-
-    # valsOhm = percentOhm(equivLista, dbar[1])
-
-    ExecOK = 0
-
-    relaNotOk = """
-O arquivo ATP não chegou a ser lido. Para auxiliar o usuário a elaborar a 
-lista com os nomes, segue abaixo a relação de barras que possuem equivalentes
-conectados:
-"""
-
-    relaAna = """
-Leitura do arquivo .ANA de equivalentes feita com sucesso. O total de barras 
-que possuem circuitos equivalentes conectados é {}.
-""".format(len(barrasEquiv))
-
-    relaATPok = """
-Leitura do arquivo com os nomes de nó para o ATP feita com sucesso. Não há 
-barras repetidas. A lista de número de barra e nome do .ANA e seus respec-
-tivos nomes do ATP é dada abaixo:
-"""
-
-    relaATPnotOk = """
-Leitura do arquivo com os nomes de nó para o ATP feita com sucesso. Foram
-detectadas {} barras repetidas. São elas: {} . A lista de número de
-barra e nome do .ANA e seus respectivos nomes do ATP é dada abaixo:
-""".format(len(dbar.get_repATP()), dbar.get_repATP())
-
-
-
-
-    rela.write(relaAna)
-    if ExecOK == 0:
-        rela.write(relaNotOk + '{0:>6s} {1:<11s} {2:>6s}\n'\
-            .format(*ajuda.texto('cabecalho', query='list')))
-        for barra in barrasEquiv:
-            rela.write('{0:>6d} {1:<12s} {2!s:>6}\n'.format(barra, dbar.get_nomeAna(barra), dbar.get_vBase(barra)))
-    if len(dbar.get_repATP()) == 0: rela.write(relaATPok)
-    else:
-        rela.write(relaATPnotOk)
-    for barra in barrasEquiv:
-        rela.write('{0:>6d}{1:<12s}{2:>6}{3:>6} \n'.format(barra, dbar.get_nomeAna(barra), dbar.get_nomeAtp(barra), dbar.get_nomeGerAtp(barra)))
-
-    # INSERÇÃO DA LISTA DE NOMES PARA ATP PELO USUÁRIO ------------------------#
-
-
-
-
-    sys.exit()
-
-
-    file_EQUI = open('equivalente.lib','w')
-
-    makeEqui()
 
 main()

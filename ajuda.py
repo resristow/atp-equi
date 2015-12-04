@@ -4,29 +4,35 @@ Textos de ajuda ao usuário
 from textwrap import fill
 
 textos_crus={
-    'welcome' : \
-        'O APLICATIVO É BASEADO NA IDENTIFICAÇÃO DA LISTA "DBAR" E DAS LINHAS DO EQUIVALENTE QUE CONTENHAM "EQUIV." NO NOME DE CIRCUITO (CN) QUE ESTÃO CONTIDAS NO ARQUIVO *.ANA QUE O USUÁRIO IRÁ INSERIR.',
-    'queryArq' : \
-        'PRESSIONE "ENTER" PARA ESCOLHER O ARQUIVO.',
-    'cabecalho': \
+    'cabecalho':
         'NÚMERO NOME TENSÃO',
-    'barrasTot': \
-        'TOTAL DE BARRAS: ',
-    'ATPinput': \
-        'CRIE UM ARQUIVO TEXTO COM OS CÓDIGOS PARA ATP (NÃO SE ESQUEÇA DO "TERRA"). SEU ARQUIVO DEVE TER A MESMA SEQUÊNCIA DA LISTA ACIMA.',
-    'diff': \
-        'AS LISTAS CONTÊM QUANTIDADES DIFERENTES!',
-    'igual': \
-        'AS LISTAS CONTÊM QUANTIDADES IGUAIS. CONFIRA SE OS CÓDIGOS CORRESPONDEM ENTRE SI.',
-    'queryLib': \
-        'ESCOLHA UMAS DAS OPÇÕES ABAIXO:\n1 - ACEITAR A LISTA E GERAR ARQUIVO .LIB.\n2 - INSERIR NOVA LISTA.'
+
+    'cabecalhoF':
+        'NÚMERO NOME ATP-NÓ ATP-FONTE',
+
+    'relaBarra': 
+"""O usuário optou por apenas imprimir a relação de barras do arquivo .ANA
+(comando 'barras'). O total de barras que possuem equivalentes conectados é {0!s}.
+Segue a lista abaixo:\n\n""",
+
+    'relaErroArq':
+"""You loose, fella! O arquivo {} não foi encontrado. O caminho tentado foi
+{}.
+O resto do processamento nem continuou.\n\n""",
+
+    'relaEqui':
+"""O arquivo {} foi gerado com sucesso! Foram encontradas {!s} barras com 
+equivalentes conectados. A lista completa de barras é apresentada abaixo.\n\n""",
+    'relaErroDiff':
+"""You loose, fella! O número de barras com equivalentes conectados do arquivo .ANA é
+diferente da quantidade total de barras fornecidas no arquivo com os
+nomes de barras para o ATP. A diferença é de {!s} barra(s).
+O processamento será interrompido. Verifique os dados.\n"""
 }
 
-def texto (escolha, query='print'):
-    escolhido = textos_crus[escolha].split(sep='\n')
-    if 'print' in query.lower():
-        for linha in [fill(n) for n in escolhido]: print(linha)
+def texto (escolha, query='string'):
+    escolhido = textos_crus[escolha]
     if 'list' in query.lower(): 
-        return escolhido[0].split()
-    if 'string' in query.lower(): return escolhido[0]
+        return escolhido.split()
+    if 'string' in query.lower(): return escolhido
     
