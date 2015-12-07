@@ -22,7 +22,7 @@ O resto do processamento nem continuou.\n\n""",
 
     'relaEqui':
 """O arquivo {} foi gerado com sucesso! Foram encontradas {!s} barras com 
-equivalentes conectados. A lista completa de barras é apresentada abaixo.\n\n""",
+equivalentes conectados, sendo que {!s} são fontes. A lista completa de barras é apresentada abaixo.\n\n""",
     'relaErroDiff':
 """You loose, fella! O número de barras com equivalentes conectados do arquivo .ANA é
 diferente da quantidade total de barras fornecidas no arquivo com os

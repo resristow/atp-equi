@@ -1,6 +1,6 @@
 ISSUES:
 
-
 IDEAS:
-001 - Gerar um cartão /SOURCE automaticamente
+001 - Fornecer no relatório o número de barras de fonte e dizer que já imprimiu no sorces.lib
 002 - Sugerir nomes de barras de atp
+004 - Fazer um handler decente para o argparser

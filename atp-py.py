@@ -2,27 +2,48 @@ import ajuda
 import textwrap
 from pathlib import Path
 import argparse
+from math import *
+import subprocess
+import win32api
+import win32com.client
+
+import sys
 
 
-parser = argparse.ArgumentParser(description='Cria um equivalente para o ATP', 
-                prog='ATP-EQUI')
-parser.add_argument('-c','--comando', default='equi', metavar='Comando', 
-                help='Especifica que operacao deve ser feita')
-parser.add_argument('arqAna', default='equi.ana', metavar='.ANA', nargs='?', 
-                help='Especifica o nome do arquivo .ANA para leitura')
-parser.add_argument('arqAtp', default='nomes atp.txt', metavar='Nomes ATP', 
-                nargs='?', help='Especifica o nome do arquivo com os nomes de barras do ATP')
-parser.add_argument('--rela', default='RELATORIO_SAIDA.txt', 
-                metavar='arquivo', help='Especifica o nome do arquivo de relatório de saída')
-parser.add_argument('--lib', default='equivalente.lib', metavar='.lib', 
-                help='Especifica o nome do arquivo de equivalente .lib que será gerado')
+class args_Handler():
+    def __init__(self):
+        parser = argparse.ArgumentParser(description='Cria um equivalente para o ATP', 
+                        prog='ATP-EQUI')
+        parser.add_argument('-c', default='es', metavar='Comando', nargs='?', 
+                        help='Especifica que operacao deve ser feita [esRb] -Imprime\
+                        [e]quivalente.lib, imprime [s]ource.lib, imprime [R]NCC.rel,\
+                        lista [b]arras com equivalentes e sai.')
+        parser.add_argument('-P', default='', metavar='Path', nargs='*', 
+                        help='Muda a localização padrão dos arquivos [esAarN] \
+                        [e]quivalentes.lib, [s]ource.lib, nomes[A]tp.txt, equi.[a]na,\
+                        [r]elatorio.OUT, R[N]CC.rel')
+        self.args = parser.parse_args()
 
-args = parser.parse_args()
+    def check_Paths(self, arqPaths):
+        if self.args.P[0] != '':
+            for cami in self.args.P[0]:
+                if 'e' in cami: arqPaths['Lib'] = Path(self.args.P[self.args.P[0].index(cami) +
+                 1])
+                if 's' in cami: arqPaths['Src'] = Path(self.args.P[self.args.P[0].index(cami) +
+                 1])
+                if 'A' in cami: arqPaths['Atp'] = Path(self.args.P[self.args.P[0].index(cami) +
+                 1])
+                if 'a' in cami: arqPaths['Ana'] = Path(self.args.P[self.args.P[0].index(cami) +
+                 1])
+                if 'r' in cami: arqPaths['Rela'] = Path(self.args.P[self.args.P[0].index(cami)
+                 + 1])
+                if 'N' in cami: arqPaths['Rncc'] = Path(self.args.P[self.args.P[0].index(cami)
+                 + 1])
+        return arqPaths
 
-arqPaths = {'Lib' : Path(args.lib),
-            'Rela' : Path(args.rela),
-            'Ana' : Path(args.arqAna),
-            'Atp' : Path(args.arqAtp)}
+
+
+
 
 
 class Nodes:
@@ -57,26 +78,26 @@ class Nodes:
             if attr == 'nomeGerAtp': self.nodes[numAna].nomeGerAtp = dado
 
     def get_all(self):
-        return self.nodes
+        return self.nodes.values()
 
     def check_repGerATP(self):
         repGerATP = set()
 
-        for barra in self.get_all().keys():
-            if self.get_nomeGerAtp(barra) != '':
-                if self.get_nomeGerAtp(barra) in repGerATP: 
-                    self.alter(numAna = barra, attr = 'nomeGerAtp', dado = 'F' + self.get_nomeGerAtp(barra)[:-1])
+        for barra in self.get_all():
+            if self.get_nomeGerAtp(barra.numAna) != '':
+                if self.get_nomeGerAtp(barra.numAna) in repGerATP: 
+                    self.alter(numAna = barra.numAna, attr = 'nomeGerAtp', dado = 'F' + self.get_nomeGerAtp(barra)[:-1])
                     self.check_repGerATP()
-                repGerATP.add(self.get_nomeGerAtp(barra))
+                repGerATP.add(self.get_nomeGerAtp(barra.numAna))
 
     def check_repATP(self):
         tempRep = set()
 
-        for barra in self.get_all().keys():
-            if self.get_nomeAtp(barra) != '':
-                if self.get_nomeAtp(barra) in tempRep:
-                    self.repATP.add(self.get_nomeAtp(barra))
-                tempRep.add(self.get_nomeAtp(barra))
+        for barra in self.get_all():
+            if self.get_nomeAtp(barra.numAna) != '':
+                if self.get_nomeAtp(barra.numAna) in tempRep:
+                    self.repATP.add(self.get_nomeAtp(barra.numAna))
+                tempRep.add(self.get_nomeAtp(barra.numAna))
 
 
 
@@ -227,7 +248,7 @@ def percentOhm(params, vbas):
                 paramsOhm[params[3:].index(item)].append(str(valor*base/100)[:6])
     return paramsOhm
 
-def makeEqui(arquivo, equiv, dbar):
+def make_Equi(arquivo, equiv, dbar):
     arquivo = arquivo.open('w')
     arquivo.write('/BRANCH\n')
     numTrf = 1
@@ -290,8 +311,83 @@ def makeEqui(arquivo, equiv, dbar):
 
             numTrf += 1
 
-def emiteRela(arquivo, status, dbar, equiv):
-    rela = arquivo.open('w')
+def make_Source(arquivo, dbar):
+    arquivo = arquivo.open('w')
+    arquivo.write('/SOURCE\nC < n 1><>< Ampl.  >< Freq.  ><Phase/T0><   A1   ><   T1   >< TSTART >< TSTOP  >\n')
+    for barra in dbar.get_all():
+        if barra.nomeGerAtp != '':
+            arquivo.write('14{:5}A  {!s:10.10}{:10d}'.format(barra.nomeGerAtp, 
+                str(barra.vBase*sqrt(2/3)*1000), 60) + 30*' ' + 
+                '{:10d}{:10d}'.format(-1,100) + '\n')
+            arquivo.write('14{:5}B  {!s:10.10}{:10d}{:10d}'.format(barra.nomeGerAtp, 
+                barra.vBase*sqrt(2/3)*1000, 60, -120) + 20*' ' + 
+                '{:10d}{:10d}'.format(-1,100) + '\n')
+            arquivo.write('14{:5}C  {!s:10.10}{:10d}{:10d}'.format(barra.nomeGerAtp, 
+                barra.vBase*sqrt(2/3)*1000, 60, -240) + 20*' ' + 
+                '{:10d}{:10d}'.format(-1,100) + '\n')
+
+def make_Rncc(arquivo, rncc, dbar, equiv):
+    dummyAna = Path.cwd() / Path('dummy_' + arquivo.name)
+    dummyInp = Path.cwd() / Path('dummy.inp')
+    dummyBar = Path.cwd() / Path('dummy.bar')
+    dummyRel = Path.cwd() / rncc
+    dummyBat = Path.cwd() / Path('dummy.bat')
+
+    equiNodes = equiv.get_equiNodes()[1:]
+
+    arqAna = arquivo.open('r')
+
+    with dummyAna.open('w') as dumana:
+        flag = 0
+        for linha in arqAna.readlines():
+            if '998' in linha[69:72]: flag = 0
+            if 'dmut' in linha.lower(): flag = 2
+            if 'dare' in linha.lower(): flag = 0
+            if 'dbar' in linha.lower(): flag = 3
+
+            if flag == 1: dumana.write('('+linha)
+            elif flag == 2: pass
+            elif flag == 3:
+                try:
+                    if (int(linha[:5]) in equiNodes) or \
+                    (int(linha[:5]) == 99999): dumana.write(linha)
+                    else: dumana.write('('+linha)
+                except: dumana.write(linha)
+            else: dumana.write(linha)
+
+            if ('dcir' in linha.lower()) or ('dlin' in linha.lower()): flag  = 1
+
+    with dummyBar.open('w') as dumbar:
+        dumbar.write('ANAFAS.BAR\nbla bla\n')
+        for barra in equiNodes:
+            dumbar.write(str(barra)+'\n')
+
+    with dummyInp.open('w') as duminp:
+        duminp.write('dcte\nruni ka\n9999\n\n')
+        duminp.write('arqv dado\n')
+        duminp.write(str(dummyAna) + '\n\n')
+        duminp.write('arqv cbal\n')
+        duminp.write(str(dummyBar) + '\n\n')
+        duminp.write('arqv said\n')
+        duminp.write(str(dummyRel) + '\n\n')
+        duminp.write('rela conj rncc\n\nFIM')
+
+    with dummyBat.open('w') as dumbat:
+        dumbat.write('cd /d c:\\cepel\\anafas 6.5\n\nSTART anafas.exe -WIN ' + 
+            '"' + str(dummyInp) + '"')
+
+    shell = win32com.client.Dispatch("WScript.Shell")
+    shell.Run("dummy.bat")
+    while not shell.AppActivate("Anafas"): pass
+    win32api.Sleep(500)
+    shell.SendKeys("s")
+
+    # print(subprocess.call(['cmd', '/c', 'dummy.bat']))
+    subprocess.call('rm dum* DUM*')
+
+
+def make_Rela(arqPaths, comando, status, dbar, equiv):
+    rela = arqPaths['Rela'].open('w')
 
     if status['ana'] != 0: barrasEquiv = equiv.get_equiNodes()[1:]
 
@@ -304,15 +400,7 @@ def emiteRela(arquivo, status, dbar, equiv):
     elif status['diff'] > 0:
         rela.write(ajuda.texto('relaErroDiff').format(status['diff']))
 
-    elif args.comando == 'equi':
-        
-        rela.write(ajuda.texto('relaEqui').format(Path.cwd()/arqPaths['Lib'], len(barrasEquiv)))
-        rela.write('{:^6}{:^15}{:^10}{:^10}\n'.format(*ajuda.texto('cabecalhoF', query='list')))
-        for barra in barrasEquiv:
-            rela.write('{:^6d}{:^15}{:^11}{:^11}\n'.format(barra, dbar.get_nomeAna(barra), dbar.get_nomeAtp(barra), dbar.get_nomeGerAtp(barra)))
-
-    elif args.comando == 'barras':
-        barrasEquiv = equiv.get_equiNodes()[1:]
+    elif 'b' in comando:
         rela.write(ajuda.texto('relaBarra').format(len(barrasEquiv)))
 
         rela.write('{0:^6s} {1:<11s} {2:^6s}\n'\
@@ -320,10 +408,31 @@ def emiteRela(arquivo, status, dbar, equiv):
         for barra in barrasEquiv:
             rela.write('{0:^6d} {1:<12s} {2!s:^6}\n'.format(barra, dbar.get_nomeAna(barra), dbar.get_vBase(barra)))
 
+    elif 'e' in comando:
+        fontes = set()
+        for barra in barrasEquiv:
+            fontes.add(dbar.get_nomeGerAtp(barra))
+        rela.write(ajuda.texto('relaEqui').format(Path.cwd()/arqPaths['Lib'], len(barrasEquiv), len(fontes)-1))
+        rela.write('{:^6}{:^15}{:^10}{:^10}\n'.format(*ajuda.texto('cabecalhoF', query='list')))
+        for barra in barrasEquiv:
+            rela.write('{:^6d}{:^15}{:^11}{:^11}\n'.format(barra, dbar.get_nomeAna(barra), dbar.get_nomeAtp(barra), dbar.get_nomeGerAtp(barra)))
+
+
+
 
 
 def main():
 
+    arqPaths = {'Lib' : Path('equivalente.lib'),
+                'Rela' : Path('relatorio.OUT'),
+                'Ana' : Path('equi.ana'),
+                'Atp' : Path('nomesatp.txt'),
+                'Src' : Path('sources.lib'),
+                'Rncc' : Path('rncc.rel')}
+
+    argumnt = args_Handler()
+    arqPaths = argumnt.check_Paths(arqPaths)
+    comando = argumnt.args.c
 
     status = {'ana': 1, 'atp': 1, 'diff': 0}
         
@@ -331,23 +440,30 @@ def main():
     try:
         dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
         equiv = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
-    except(FileNotFoundError): 
-        status['ana'] = 0
-        dbar, equiv = 0,0
+    except(FileNotFoundError): status['ana'] = 0
 
-    if args.comando == 'equi':
+    if status['ana'] and ('R' in comando):
+        make_Rncc(arqPaths['Ana'], arqPaths['Rncc'], dbar, equiv)
+
+
+    if 'b' not in comando:
         try:
             get_ATP(arqPaths['Atp'].open('r'), dbar, equiv)
             diff = abs(len(arqPaths['Atp'].open('r').readlines()) - len(equiv.get_equiNodes()[1:]))
             if diff > 0: status['diff'] = diff
+            status['atp'] = 1
         except(FileNotFoundError): status['atp'] = 0
 
+    if status['atp'] and ('s' in comando):
+        make_Source(arqPaths['Src'], dbar)
 
-    emiteRela(arqPaths['Rela'], status, dbar, equiv)
+
+    if ('e' in comando) and status['ana'] and status['atp'] and not status['diff']:
+        make_Equi(arqPaths['Lib'], equiv, dbar)
 
 
-    makeEqui(arqPaths['Lib'], equiv, dbar)
 
+    make_Rela(arqPaths, comando, status, dbar, equiv)
 
 
 main()
