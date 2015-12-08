@@ -1,8 +1,5 @@
 ISSUES:
-001 - Se o número de barras de fronteira do equivalente difere da lista de nomes de atp que o usuário entro, o programa quebra;
-
+001 - Falta de comentário no código
 
 IDEAS:
-001 - Fazer um check se há alguma barra de atp com nome repetido
 002 - Sugerir nomes de barras de atp
-003 - Fazer no próprio relatório de saída um resumo do que ocorreu, inclusive se o usuário cair fora. ASsim, no mesmo arquivo, será possível ver tudo o que ocorreu com o processamento, e de quebra, caso ele ainda não saiba as barras de fronteira, o usuário poderá vê-las por ali
