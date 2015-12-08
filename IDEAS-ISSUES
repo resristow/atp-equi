@@ -1,6 +1,5 @@
 ISSUES:
+001 - Falta de comentário no código
 
 IDEAS:
-001 - Fornecer no relatório o número de barras de fonte e dizer que já imprimiu no sorces.lib
 002 - Sugerir nomes de barras de atp
-004 - Fazer um handler decente para o argparser

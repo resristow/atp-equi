@@ -25,7 +25,7 @@ class args_Handler():
         self.args = parser.parse_args()
 
     def check_Paths(self, arqPaths):
-        if self.args.P[0] != '':
+        if self.args.P != '':
             for cami in self.args.P[0]:
                 if 'e' in cami: arqPaths['Lib'] = Path(self.args.P[self.args.P[0].index(cami) +
                  1])
@@ -386,37 +386,67 @@ def make_Rncc(arquivo, rncc, dbar, equiv):
     subprocess.call('rm dum* DUM*')
 
 
-def make_Rela(arqPaths, comando, status, dbar, equiv):
-    rela = arqPaths['Rela'].open('w')
+def make_Rela(relaBuffer, arqPaths):
+    
+    if 'Ana' in relaBuffer[0]:
+        rela = arqPaths['Rela'].open('w')
+        
+        if not relaBuffer[1]:
+            rela.write(ajuda.texto('relaErroArq').format(arqPaths['Ana'].name, Path.cwd()/arqPaths['Ana']))
+        else: rela.write(ajuda.texto('relaArq').format(arqPaths['Ana'].name))
+    else: rela = arqPaths['Rela'].open('a') 
 
-    if status['ana'] != 0: barrasEquiv = equiv.get_equiNodes()[1:]
+    if 'rncc' in relaBuffer[0]:
+        rela.write(ajuda.texto('relaRncc').format(arqPaths['Rncc']))
 
-    if status['ana'] == 0:
-        rela.write(ajuda.texto('relaErroArq').format('.ANA', Path.cwd()/arqPaths['Ana']))
-
-    elif status['atp'] == 0:
-        rela.write(ajuda.texto('relaErroArq').format('com os nomes do ATP', Path.cwd()/arqPaths['Atp']))
-
-    elif status['diff'] > 0:
-        rela.write(ajuda.texto('relaErroDiff').format(status['diff']))
-
-    elif 'b' in comando:
+    if 'barras' in relaBuffer[0]:
+        barrasEquiv = relaBuffer[2].get_equiNodes()[1:]
         rela.write(ajuda.texto('relaBarra').format(len(barrasEquiv)))
 
         rela.write('{0:^6s} {1:<11s} {2:^6s}\n'\
             .format(*ajuda.texto('cabecalho', query='list')))
         for barra in barrasEquiv:
-            rela.write('{0:^6d} {1:<12s} {2!s:^6}\n'.format(barra, dbar.get_nomeAna(barra), dbar.get_vBase(barra)))
+            rela.write('{0:^6d} {1:<12s} {2!s:^6}\n'.format(barra, relaBuffer[1].get_nomeAna(barra), relaBuffer[1].get_vBase(barra)))
 
-    elif 'e' in comando:
+    if 'atp' in relaBuffer[0]:
+        if not relaBuffer[1]:
+            rela.write(ajuda.texto('relaErroArq').format(arqPaths['Atp'], Path.cwd()/arqPaths['Atp']))
+        else: rela.write(ajuda.texto('relaArq').format(arqPaths['Atp'].name))
+
+    if 'diff' in relaBuffer[0]:
+        rela.write(ajuda.texto('relaErroDiff').format(relaBuffer[1]))
+
+    if 'src' in relaBuffer[0]:
+        rela.write(ajuda.texto('relaSrc').format(arqPaths['Src']))
+
+    if 'equi' in relaBuffer[0]:
         fontes = set()
-        for barra in barrasEquiv:
-            fontes.add(dbar.get_nomeGerAtp(barra))
-        rela.write(ajuda.texto('relaEqui').format(Path.cwd()/arqPaths['Lib'], len(barrasEquiv), len(fontes)-1))
+        for barra in barrasrelaBuffer[2]:
+            fontes.add(relaBuffer[1].get_nomeGerAtp(barra))
+        rela.write(ajuda.texto('relaEqui').format(Path.cwd()/arqPaths['Lib'], len(barrasrelaBuffer[2]), len(fontes)-1))
         rela.write('{:^6}{:^15}{:^10}{:^10}\n'.format(*ajuda.texto('cabecalhoF', query='list')))
-        for barra in barrasEquiv:
-            rela.write('{:^6d}{:^15}{:^11}{:^11}\n'.format(barra, dbar.get_nomeAna(barra), dbar.get_nomeAtp(barra), dbar.get_nomeGerAtp(barra)))
+        for barra in barrasrelaBuffer[2]:
+            rela.write('{:^6d}{:^15}{:^11}{:^11}\n'.format(barra, relaBuffer[1].get_nomeAna(barra), relaBuffer[1].get_nomeAtp(barra), relaBuffer[1].get_nomeGerAtp(barra)))
+        
 
+
+
+
+
+
+class relaWatcher():
+    def __init__(self, make_Rela, arqPaths):
+        self._relaBuffer = ('',1)
+        self.make_Rela = make_Rela
+        self.arqPaths = arqPaths
+    @property
+    def relaBuffer(self): return self._relaBuffer
+
+    @relaBuffer.setter
+    def relaBuffer(self, value):
+        self._relaBuffer = value
+        self.make_Rela(self._relaBuffer, self.arqPaths)
+        self._relaBuffer = 0
 
 
 
@@ -430,40 +460,56 @@ def main():
                 'Src' : Path('sources.lib'),
                 'Rncc' : Path('rncc.rel')}
 
+
+
     argumnt = args_Handler()
     arqPaths = argumnt.check_Paths(arqPaths)
     comando = argumnt.args.c
 
-    status = {'ana': 1, 'atp': 1, 'diff': 0}
+    runTime = 1
         
+    relaWatch = relaWatcher(make_Rela, arqPaths)
+
 
     try:
         dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
         equiv = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
-    except(FileNotFoundError): status['ana'] = 0
-
-    if status['ana'] and ('R' in comando):
-        make_Rncc(arqPaths['Ana'], arqPaths['Rncc'], dbar, equiv)
-
-
-    if 'b' not in comando:
-        try:
-            get_ATP(arqPaths['Atp'].open('r'), dbar, equiv)
-            diff = abs(len(arqPaths['Atp'].open('r').readlines()) - len(equiv.get_equiNodes()[1:]))
-            if diff > 0: status['diff'] = diff
-            status['atp'] = 1
-        except(FileNotFoundError): status['atp'] = 0
-
-    if status['atp'] and ('s' in comando):
-        make_Source(arqPaths['Src'], dbar)
+        relaWatch.relaBuffer = ('Ana',1)
+    except(FileNotFoundError):
+        runTime = 0
+        relaWatch.relaBuffer = ('Ana',0)
 
 
-    if ('e' in comando) and status['ana'] and status['atp'] and not status['diff']:
-        make_Equi(arqPaths['Lib'], equiv, dbar)
+    if runTime:
+        if 'R' in comando:
+            make_Rncc(arqPaths['Ana'], arqPaths['Rncc'], dbar, equiv)
+            relaWatch.relaBuffer = ('rncc',)
 
+        if 'b' in comando:
+            relaWatch.relaBuffer = ('barras', dbar, equiv)  
+        else:
+            try:
+                get_ATP(arqPaths['Atp'].open('r'), dbar, equiv)
+                diff = abs(len(arqPaths['Atp'].open('r').readlines()) - len(equiv.get_equiNodes()[1:]))
+                relaWatch.relaBuffer = ('atp', 1)
+                if diff > 0:
+                    relaWatch.relaBuffer = ('diff', diff)
+                    runTime = 0
+            except(FileNotFoundError): 
+                relaWatch.relaBuffer = ('atp', 0)
+                runTime = 0
 
+    if runTime:
+        if 's' in comando:
+            make_Source(arqPaths['Src'], dbar)
+            relaWatch.relaBuffer = ('src',)
 
-    make_Rela(arqPaths, comando, status, dbar, equiv)
+        if 'e' in comando:
+            make_Equi(arqPaths['Lib'], equiv, dbar)
+            relaWatch.relaBuffer = ('equi', dbar, equiv)
+
+    print(ajuda.texto('fim').format(arqPaths['Rela']))
+
 
 
 main()
