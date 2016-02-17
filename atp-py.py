@@ -1,5 +1,4 @@
 import ajuda
-import textwrap
 from pathlib import Path
 import argparse
 from math import *
@@ -7,10 +6,13 @@ import subprocess
 import win32api
 import win32com.client
 
+# para debugging
 import sys
 
 
 class args_Handler():
+    """Classe para administrar os argumentos de entrada do programa em linha de 
+    comando."""
     def __init__(self):
         parser = argparse.ArgumentParser(description='Cria um equivalente para o ATP', 
                         prog='ATP-EQUI')
@@ -25,6 +27,8 @@ class args_Handler():
         self.args = parser.parse_args()
 
     def check_Paths(self, arqPaths):
+        """Substitui os caminhos-padrão dos arquivos, se o usuario assim optou com o argu-
+        mento -P na linha de comando."""
         if self.args.P != '':
             for cami in self.args.P[0]:
                 if 'e' in cami: arqPaths['Lib'] = Path(self.args.P[self.args.P[0].index(cami) +
@@ -47,7 +51,10 @@ class args_Handler():
 
 
 class Nodes:
-    "Coleção de barras do equivalente"
+    """Coleção de barras do equivalente.
+    As barras/nós são representados pela Classe node. Aqui elas são concentradas
+    num dicionário, 'nodes'.
+    """
     def __init__(self):
         self.nodes = {}
         self.repATP = set()
@@ -149,6 +156,13 @@ class Branches:
 
 class branch:
     """
+    Classe que representa um circuito. Os atributos da classe são:
+    nodes: tuple com os nós DE e PARA
+    tipo: G(erador), (T)rafo
+    params: parâmetros em %
+    paramsOhm: parâmetros em Ohms
+    Inicialmente o circuito é criado com parâmetros zeros, até ser solicitado a
+    inclusão dos valores obtidos do arquivo .ANA (addLinha)
     """
     def __init__(self, linha):
         self.nodes = (0,0)
@@ -189,11 +203,12 @@ class branch:
 # FUNÇÕES ---------------------------------------------------------------------#
 
 def get_DBAR(arquivo, colecao):
+    """Obtém todo o conteúdo do código DBAR do arquivo .ANA"""
 
     flag = 0
     dbar = colecao
 
-
+    #Acrescenta a barra/nó Terra ao conjunto de barras
     dbar.addNode(node())
     dbar.alter(dado = 'Terra')
 
@@ -210,6 +225,9 @@ def get_DBAR(arquivo, colecao):
     return dbar
 
 def get_EQUIV(arquivo, colecao, dbar):
+    """Obtém todo o conteúdo dos circuitos de equivalentes (marcados com 998) do
+    arquivo .ANA."""
+
     flag = 0
     equiv = colecao
     for linha in arquivo:
@@ -220,7 +238,12 @@ def get_EQUIV(arquivo, colecao, dbar):
     return equiv
 
 def get_ATP(arquivo, dbar, equiv):
-
+    """Faz a leitura do arquivo de texto com os nomes das barras de fronteira 
+    para o ATP.
+    Esses nomes são acrescentados nas instâncias dos nós.
+    Em seguida, é feito uma verificação para ver se não há nomes de nó repeti-
+    dos, que é uma desgraça para o ATP.
+    Por fim, cria-se uma sequência de nomes de nó com geradores para o ATP."""
 
     for barra in equiv.get_equiNodes()[1:]:
         nomeATP = arquivo.readline().strip()
@@ -237,6 +260,7 @@ def get_ATP(arquivo, dbar, equiv):
 
 
 def percentOhm(params, vbas):
+    "Converte determinada sequência de parâmetros em \% para Ohms"
     paramsOhm = []
     for item in params[3:]:
         paramsOhm.append([])
@@ -249,36 +273,54 @@ def percentOhm(params, vbas):
     return paramsOhm
 
 def make_Equi(arquivo, equiv, dbar):
-    arquivo = arquivo.open('w')
-    arquivo.write('/BRANCH\n')
-    numTrf = 1
+    """Funçaõ para compor o arquivo-cartão /BRANCH com extensão .lib, do ATP,
+    que irá conter a rede equivalentada pelo Anafas."""
 
+    arquivo = arquivo.open('w')
+    numTrf = 1
+    
+    arquivo.write('/BRANCH\n')
+
+    # Loop 'for' sobre cada circuito equivalente
     for branch in equiv.get_all():
+        # Escreve o delimitador superior, com vários '=' e, embaixo, o nome das
+        #barras DE e PARA
         arquivo.write('C ' + 77*'=' + '\n' + 'C =====' + 
             dbar.get_nomeAna(branch.nodes[0]) + ' - ' + 
             dbar.get_nomeAna(branch.nodes[1]) + '\n')
 
+        # Compões a lista com o nome do nó DE para cada uma das 3 fases
         nodeFrom = [str(dbar.get_nomeAtp(branch.nodes[0]))+'A',
                     str(dbar.get_nomeAtp(branch.nodes[0]))+'B',
                     str(dbar.get_nomeAtp(branch.nodes[0]))+'C']
 
+        # A seguir, é feita a composição da lista com o nome do nó PARA, a de-
+        #pender do tipo de elemento que se deseja representar no ATP
+
+
+        # Se for um 'Gerador':
         if branch.tipo == 'G':
             nodeTo = [str(dbar.get_nomeGerAtp(branch.nodes[0]))+'A',
                     str(dbar.get_nomeGerAtp(branch.nodes[0]))+'B',
                     str(dbar.get_nomeGerAtp(branch.nodes[0]))+'C']
 
+        # Se for um 'Shunt':
         elif branch.nodes[1] == 0:
             nodeTo = [' '*6 for n in range(3)]
 
+        # Se for um 'Trafo':
         elif branch.tipo == 'T':
              nodeTo = [str(numTrf)+'TIEA',
                         str(numTrf)+'TIEB',
                         str(numTrf)+'TIEC']
 
+        # Se for uma 'LT':
         else:
             nodeTo = [str(dbar.get_nomeAtp(branch.nodes[1]))+'A',
                     str(dbar.get_nomeAtp(branch.nodes[1]))+'B',
                     str(dbar.get_nomeAtp(branch.nodes[1]))+'C'] 
+
+        # A seguir, é feita a escrita dos dados do circuito no arquivo-cartão.
 
         arquivo.write('51{}{:6}'.format(nodeFrom[0],nodeTo[0]) + 12*' ' + 
             '{0!s:<.6}'.format(branch.paramsOhm['r0']) + 6*' ' +
@@ -287,6 +329,10 @@ def make_Equi(arquivo, equiv, dbar):
             '{0!s:<.6}'.format(branch.paramsOhm['r1']) + 6*' ' +
             '{0!s:<.12}'.format(branch.paramsOhm['x1']) + '\n')
         arquivo.write('53' + nodeFrom[2] + nodeTo[2] + '\n')
+
+        # Se for um transformador, é colocado um transformador ideal para fazer
+        #a relação de tensão entre as duas barras. A impedância da ligação já é
+        #escrita na etapa acima.
 
         if branch.tipo == 'T':
 
@@ -312,6 +358,8 @@ def make_Equi(arquivo, equiv, dbar):
             numTrf += 1
 
 def make_Source(arquivo, dbar):
+    """Escreve um arquivo-cartão /SOURCE no formato .lib com as fontes do siste-
+    equivalente."""
     arquivo = arquivo.open('w')
     arquivo.write('/SOURCE\nC < n 1><>< Ampl.  >< Freq.  ><Phase/T0><   A1   ><   T1   >< TSTART >< TSTOP  >\n')
     for barra in dbar.get_all():
@@ -327,15 +375,23 @@ def make_Source(arquivo, dbar):
                 '{:10d}{:10d}'.format(-1,100) + '\n')
 
 def make_Rncc(arquivo, rncc, dbar, equiv):
+    """Roda o Anafas para obter o Relatório de Níveis de Curto-Circuito do sis-
+    tema equivalentado. Só estão ligadas as barras de fronteira.
+    Cria-se arquivos-fantoche dummy* para poder rodar o Anafas em modo
+    Batch.
+    """
     dummyAna = Path.cwd() / Path('dummy_' + arquivo.name)
     dummyInp = Path.cwd() / Path('dummy.inp')
     dummyBar = Path.cwd() / Path('dummy.bar')
     dummyRel = Path.cwd() / rncc
     dummyBat = Path.cwd() / Path('dummy.bat')
 
+    # Obtém as barras que possuem equivalentes (chamadas de barras de fronteira)
     equiNodes = equiv.get_equiNodes()[1:]
 
     arqAna = arquivo.open('r')
+
+    #Escreve o arquivo .ANA somente com as barras de fronteira
 
     with dummyAna.open('w') as dumana:
         flag = 0
@@ -357,10 +413,14 @@ def make_Rncc(arquivo, rncc, dbar, equiv):
 
             if ('dcir' in linha.lower()) or ('dlin' in linha.lower()): flag  = 1
 
+    # Escreve o arquivo .BAR com as barras para se rodar o RNCC
+
     with dummyBar.open('w') as dumbar:
         dumbar.write('ANAFAS.BAR\nbla bla\n')
         for barra in equiNodes:
             dumbar.write(str(barra)+'\n')
+
+    # Escreve o arquivo batch .INP
 
     with dummyInp.open('w') as duminp:
         duminp.write('dcte\nruni ka\n9999\n\n')
@@ -372,9 +432,13 @@ def make_Rncc(arquivo, rncc, dbar, equiv):
         duminp.write(str(dummyRel) + '\n\n')
         duminp.write('rela conj rncc\n\nFIM')
 
+    # Escreve o arquivo .BAT para poder executar o Anafas em modo batch
+
     with dummyBat.open('w') as dumbat:
         dumbat.write('cd /d c:\\cepel\\anafas 6.5\n\nSTART anafas.exe -WIN ' + 
             '"' + str(dummyInp) + '"')
+
+    # Roda o arquivo .bat    
 
     shell = win32com.client.Dispatch("WScript.Shell")
     shell.Run("dummy.bat")
@@ -382,11 +446,39 @@ def make_Rncc(arquivo, rncc, dbar, equiv):
     win32api.Sleep(500)
     shell.SendKeys("s")
 
-    # print(subprocess.call(['cmd', '/c', 'dummy.bat']))
+    # Elimina todos os arquivos temporários que foram usados para esse processo
+
     subprocess.call('rm dum* DUM*')
 
 
 def make_Rela(relaBuffer, arqPaths):
+    """Função para escrever o relatório. Ela é chamada toda vez que o buffer 
+    relaBuffer é escrito. O que será escrito no relatório dependerá do que está 
+    no buffer.
+    O buffer é um tuple com uma string para selecionar o texto e um número 
+    arbitrário de elementos, de forma a fornecer a essa função as informações
+    necessárias para escrever o relatório.
+    relaBuffer = 'str' + *args
+    O conjunto dos possíveis buffers é:
+    'Ana' + binário indicando o sucesso da leitura do arquivo - Referente à lei-
+    tura do arquivo .ANA com os dados de curto-circuito saídos do Anafas/SAPRE.
+    'rncc' - Referente à emissão de Relatório de Níveis de Curto-circuito pelo
+    Anafas
+    'barras' - Referente à opção do usuário de apenas emitir as barras de fron-
+    teira do equivalente .ANA.
+    'atp' + binário indicando sucesso da leitura do arquivo - Referente à 
+    leitura do arquivo de texto com os nomes de barras de fronteira a serem uti-
+    lizadas no ATP.
+    'diff' + diferença no número de barras entre o arquivo .ANA e o de texto com
+    os nomes de barras de fronteira do ATP.
+    'src' - Referente a requisição de um cartão /SOURCE para o ATP com as fontes
+    das barras de fronteira.
+    'equi' + conjunto de barras equivalentes + conjunto de circuitos equivalen-
+    tes - Referente à impressão no relatório dos dados de barras do equivalente.
+
+    Essa função chama o arquivo ajuda.py, que possui os textos padrão para escre
+    ver no relatório.
+    """
     
     if 'Ana' in relaBuffer[0]:
         rela = arqPaths['Rela'].open('w')
@@ -421,11 +513,11 @@ def make_Rela(relaBuffer, arqPaths):
 
     if 'equi' in relaBuffer[0]:
         fontes = set()
-        for barra in barrasrelaBuffer[2]:
+        for barra in relaBuffer[2].get_equiNodes():
             fontes.add(relaBuffer[1].get_nomeGerAtp(barra))
-        rela.write(ajuda.texto('relaEqui').format(Path.cwd()/arqPaths['Lib'], len(barrasrelaBuffer[2]), len(fontes)-1))
+        rela.write(ajuda.texto('relaEqui').format(Path.cwd()/arqPaths['Lib'], len(relaBuffer[2].get_equiNodes()), len(fontes)-1))
         rela.write('{:^6}{:^15}{:^10}{:^10}\n'.format(*ajuda.texto('cabecalhoF', query='list')))
-        for barra in barrasrelaBuffer[2]:
+        for barra in relaBuffer[2].get_equiNodes():
             rela.write('{:^6d}{:^15}{:^11}{:^11}\n'.format(barra, relaBuffer[1].get_nomeAna(barra), relaBuffer[1].get_nomeAtp(barra), relaBuffer[1].get_nomeGerAtp(barra)))
         
 
@@ -435,24 +527,28 @@ def make_Rela(relaBuffer, arqPaths):
 
 
 class relaWatcher():
+    """Classe Descritor para monitorar o andamento do relatório, com o uso da
+    função Property.
+    Quando se altera o valor do buffer bufferRela, ele já chama a função que
+    escreve o relatório. Assim, a escrita do relatório é dinâmica."""
+
     def __init__(self, make_Rela, arqPaths):
-        self._relaBuffer = ('',1)
         self.make_Rela = make_Rela
         self.arqPaths = arqPaths
-    @property
-    def relaBuffer(self): return self._relaBuffer
 
-    @relaBuffer.setter
-    def relaBuffer(self, value):
+    def setter(self, value):
         self._relaBuffer = value
         self.make_Rela(self._relaBuffer, self.arqPaths)
         self._relaBuffer = 0
+
+    relaBuffer = property(fset=setter)
 
 
 
 
 def main():
 
+    #Definição dos nomes padrão dos arquivos
     arqPaths = {'Lib' : Path('equivalente.lib'),
                 'Rela' : Path('relatorio.OUT'),
                 'Ana' : Path('equi.ana'),
@@ -462,15 +558,25 @@ def main():
 
 
 
+    #Instancia a classe que trata dos argumentos de linha de comando
     argumnt = args_Handler()
+    #Substitui os caminhos-padrão que o usuário tenha optado na linha de comando
+    #com o argumento -P
     arqPaths = argumnt.check_Paths(arqPaths)
+    #Grava o tipo de operação requisitada pelo usuário com o comando -c
     comando = argumnt.args.c
 
+    #Indica se a execução do programa pode continuar. Se ocorrerem erros, ela é
+    # setada em 0 e o programa termina
     runTime = 1
-        
+    
+    #Instancia a classe de monitoramento do status do relatório. Conforme os
+    # processos vão avançando, o relatório vai sendo escrito.
     relaWatch = relaWatcher(make_Rela, arqPaths)
 
 
+    # Tenta ler o arquivo .ANA e daí obter a lista de barras de fronteira e os
+    #circuitos equivalentes conectados a elas.
     try:
         dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
         equiv = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
@@ -478,6 +584,9 @@ def main():
     except(FileNotFoundError):
         runTime = 0
         relaWatch.relaBuffer = ('Ana',0)
+
+    # A seguir é feita a seleção do modo de operação do programa, de acordo com
+    #os argumentos que o usuário entrou na linha de comando.
 
 
     if runTime:
@@ -499,7 +608,6 @@ def main():
                 relaWatch.relaBuffer = ('atp', 0)
                 runTime = 0
 
-    if runTime:
         if 's' in comando:
             make_Source(arqPaths['Src'], dbar)
             relaWatch.relaBuffer = ('src',)
