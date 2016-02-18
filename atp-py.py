@@ -21,28 +21,25 @@ class args_Handler():
                         [e]quivalente.lib, imprime [s]ource.lib, imprime [R]NCC.rel,\
                         lista [b]arras com equivalentes e sai.')
         parser.add_argument('-P', default='', metavar='Path', nargs='*', 
-                        help='Muda a localização padrão dos arquivos [esAarN] \
-                        [e]quivalentes.lib, [s]ource.lib, nomes[A]tp.txt, equi.[a]na,\
-                        [r]elatorio.OUT, R[N]CC.rel')
+                        help="""Muda o caminho da Pasta de Trabalho. O padrão é 
+                        mesma pasta do arquivo de execução do programa.""")
         self.args = parser.parse_args()
 
     def check_Paths(self, arqPaths):
-        """Substitui os caminhos-padrão dos arquivos, se o usuario assim optou com o argu-
-        mento -P na linha de comando."""
+        """Substitui o caminho da Pasta de Trabalho, se o usuario assim optou
+        com o argumento -P na linha de comando."""
         if self.args.P != '':
-            for cami in self.args.P[0]:
-                if 'e' in cami: arqPaths['Lib'] = Path(self.args.P[self.args.P[0].index(cami) +
-                 1])
-                if 's' in cami: arqPaths['Src'] = Path(self.args.P[self.args.P[0].index(cami) +
-                 1])
-                if 'A' in cami: arqPaths['Atp'] = Path(self.args.P[self.args.P[0].index(cami) +
-                 1])
-                if 'a' in cami: arqPaths['Ana'] = Path(self.args.P[self.args.P[0].index(cami) +
-                 1])
-                if 'r' in cami: arqPaths['Rela'] = Path(self.args.P[self.args.P[0].index(cami)
-                 + 1])
-                if 'N' in cami: arqPaths['Rncc'] = Path(self.args.P[self.args.P[0].index(cami)
-                 + 1])
+            for arg_P in self.args.P:
+                arg_P = arg_P.split('=')
+                if 'cwd' in arg_P[0]:
+                    arqPaths['cwd'] = Path(arg_P[1])
+
+                if 'nomes-atp' in arg_P[0]:
+                    arqPaths['Atp'] = arqPaths['cwd'] / Path(arg_P[1])
+
+                if 'ana' in arg_P[0]:
+                    arqPaths['Ana'] = arqPaths['cwd'] / Path(arg_P[1])
+
         return arqPaths
 
 
@@ -272,10 +269,11 @@ def percentOhm(params, vbas):
                 paramsOhm[params[3:].index(item)].append(str(valor*base/100)[:6])
     return paramsOhm
 
-def make_Equi(arquivo, equiv, dbar):
+def make_Equi(arqPaths, equiv, dbar):
     """Funçaõ para compor o arquivo-cartão /BRANCH com extensão .lib, do ATP,
     que irá conter a rede equivalentada pelo Anafas."""
 
+    arquivo = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-equivalentes.lib')
     arquivo = arquivo.open('w')
     numTrf = 1
     
@@ -357,9 +355,10 @@ def make_Equi(arquivo, equiv, dbar):
 
             numTrf += 1
 
-def make_Source(arquivo, dbar):
+def make_Source(arqPaths, dbar):
     """Escreve um arquivo-cartão /SOURCE no formato .lib com as fontes do siste-
     equivalente."""
+    arquivo = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-source.lib')
     arquivo = arquivo.open('w')
     arquivo.write('/SOURCE\nC < n 1><>< Ampl.  >< Freq.  ><Phase/T0><   A1   ><   T1   >< TSTART >< TSTOP  >\n')
     for barra in dbar.get_all():
@@ -374,22 +373,23 @@ def make_Source(arquivo, dbar):
                 barra.vBase*sqrt(2/3)*1000, 60, -240) + 20*' ' + 
                 '{:10d}{:10d}'.format(-1,100) + '\n')
 
-def make_Rncc(arquivo, rncc, dbar, equiv):
+def make_Rncc(arqPaths, equiv):
     """Roda o Anafas para obter o Relatório de Níveis de Curto-Circuito do sis-
     tema equivalentado. Só estão ligadas as barras de fronteira.
     Cria-se arquivos-fantoche dummy* para poder rodar o Anafas em modo
     Batch.
     """
-    dummyAna = Path.cwd() / Path('dummy_' + arquivo.name)
-    dummyInp = Path.cwd() / Path('dummy.inp')
-    dummyBar = Path.cwd() / Path('dummy.bar')
-    dummyRel = Path.cwd() / rncc
-    dummyBat = Path.cwd() / Path('dummy.bat')
+    dummyAna = arqPaths['cwd'] / Path('dummy-' + arqPaths['Ana'].name)
+    dummyInp = arqPaths['cwd'] / Path('dummy.inp')
+    dummyBar = arqPaths['cwd'] / Path('dummy.bar')
+    dummyRel = arqPaths['cwd'] / Path(str(arqPaths['Ana'].resolve().stem) + '-rncc.rel')
+    dummyBat = arqPaths['cwd'] / Path('dummy.bat')
+
+    arqAna = arqPaths['Ana'].open('r')
 
     # Obtém as barras que possuem equivalentes (chamadas de barras de fronteira)
     equiNodes = equiv.get_equiNodes()[1:]
 
-    arqAna = arquivo.open('r')
 
     #Escreve o arquivo .ANA somente com as barras de fronteira
 
@@ -425,30 +425,31 @@ def make_Rncc(arquivo, rncc, dbar, equiv):
     with dummyInp.open('w') as duminp:
         duminp.write('dcte\nruni ka\n9999\n\n')
         duminp.write('arqv dado\n')
-        duminp.write(str(dummyAna) + '\n\n')
+        duminp.write(str(dummyAna.resolve()) + '\n\n')
         duminp.write('arqv cbal\n')
-        duminp.write(str(dummyBar) + '\n\n')
+        duminp.write(str(dummyBar.resolve()) + '\n\n')
         duminp.write('arqv said\n')
-        duminp.write(str(dummyRel) + '\n\n')
+        duminp.write(str(dummyRel.absolute()) + '\n\n')
         duminp.write('rela conj rncc\n\nFIM')
 
     # Escreve o arquivo .BAT para poder executar o Anafas em modo batch
 
     with dummyBat.open('w') as dumbat:
         dumbat.write('cd /d c:\\cepel\\anafas 6.5\n\nSTART anafas.exe -WIN ' + 
-            '"' + str(dummyInp) + '"')
+            '"' + str(dummyInp.resolve()) + '"')
 
     # Roda o arquivo .bat    
 
     shell = win32com.client.Dispatch("WScript.Shell")
-    shell.Run("dummy.bat")
+    shell.Run(str(dummyBat))
     while not shell.AppActivate("Anafas"): pass
     win32api.Sleep(500)
     shell.SendKeys("s")
 
     # Elimina todos os arquivos temporários que foram usados para esse processo
 
-    subprocess.call('rm dum* DUM*')
+    subprocess.call('rm {}/dum* {}/DUM*'.format(str(arqPaths['cwd']),
+        str(arqPaths['cwd'])))
 
 
 def make_Rela(relaBuffer, arqPaths):
@@ -479,17 +480,20 @@ def make_Rela(relaBuffer, arqPaths):
     Essa função chama o arquivo ajuda.py, que possui os textos padrão para escre
     ver no relatório.
     """
+
+    rela = arqPaths['Ana'].parent / Path(arqPaths['Ana'].stem + '-relatorio.rel')
     
     if 'Ana' in relaBuffer[0]:
-        rela = arqPaths['Rela'].open('w')
+        #Compõe o nome do arquivo de relatório a partir do nome do arquino .ANA
+        rela = rela.open('w')
         
         if not relaBuffer[1]:
-            rela.write(ajuda.texto('relaErroArq').format(arqPaths['Ana'].name, Path.cwd()/arqPaths['Ana']))
-        else: rela.write(ajuda.texto('relaArq').format(arqPaths['Ana'].name))
-    else: rela = arqPaths['Rela'].open('a') 
+            rela.write(ajuda.texto('relaErroArq').format(arqPaths['Ana'].absolute()))
+        else: rela.write(ajuda.texto('relaArq').format(arqPaths['Ana'].resolve()))
+    else: rela = rela.open('a') 
 
     if 'rncc' in relaBuffer[0]:
-        rela.write(ajuda.texto('relaRncc').format(arqPaths['Rncc']))
+        rela.write(ajuda.texto('relaRncc').format(arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].resolve().stem) + '-rncc.rel')))
 
     if 'barras' in relaBuffer[0]:
         barrasEquiv = relaBuffer[2].get_equiNodes()[1:]
@@ -509,13 +513,13 @@ def make_Rela(relaBuffer, arqPaths):
         rela.write(ajuda.texto('relaErroDiff').format(relaBuffer[1]))
 
     if 'src' in relaBuffer[0]:
-        rela.write(ajuda.texto('relaSrc').format(arqPaths['Src']))
+        rela.write(ajuda.texto('relaSrc').format(arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-source.lib')))
 
     if 'equi' in relaBuffer[0]:
         fontes = set()
         for barra in relaBuffer[2].get_equiNodes():
             fontes.add(relaBuffer[1].get_nomeGerAtp(barra))
-        rela.write(ajuda.texto('relaEqui').format(Path.cwd()/arqPaths['Lib'], len(relaBuffer[2].get_equiNodes()), len(fontes)-1))
+        rela.write(ajuda.texto('relaEqui').format(Path.cwd()/arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-equivalentes.lib'), len(relaBuffer[2].get_equiNodes()), len(fontes)-1))
         rela.write('{:^6}{:^15}{:^10}{:^10}\n'.format(*ajuda.texto('cabecalhoF', query='list')))
         for barra in relaBuffer[2].get_equiNodes():
             rela.write('{:^6d}{:^15}{:^11}{:^11}\n'.format(barra, relaBuffer[1].get_nomeAna(barra), relaBuffer[1].get_nomeAtp(barra), relaBuffer[1].get_nomeGerAtp(barra)))
@@ -548,21 +552,26 @@ class relaWatcher():
 
 def main():
 
-    #Definição dos nomes padrão dos arquivos
-    arqPaths = {'Lib' : Path('equivalente.lib'),
-                'Rela' : Path('relatorio.OUT'),
-                'Ana' : Path('equi.ana'),
-                'Atp' : Path('nomesatp.txt'),
-                'Src' : Path('sources.lib'),
-                'Rncc' : Path('rncc.rel')}
+    #Definição da estrutura do dicionário com os caminhos para os arquivos de
+    #entrada e saída
 
-
+    arqPaths = {'Ana' : '',
+                'Atp' : '',
+                'cwd' : ''}
 
     #Instancia a classe que trata dos argumentos de linha de comando
     argumnt = args_Handler()
-    #Substitui os caminhos-padrão que o usuário tenha optado na linha de comando
-    #com o argumento -P
+
+    #Verifica e busca os caminhos de arquivo fornecidos se o usuário assim optou
+    #na linha de comando com o argumento -P
     arqPaths = argumnt.check_Paths(arqPaths)
+
+    # Inclui os caminhos-padrão na lista, caso o usuário não tenha mudado. E
+    #muda o diretório de trabalho para o que o usuário optou.
+    if not arqPaths['cwd']: arqPaths['cwd'] = Path.cwd()
+    if not arqPaths['Ana']: arqPaths['Ana'] = arqPaths['cwd'] / Path('equi.ana')
+    if not arqPaths['Atp']: arqPaths['Atp'] = arqPaths['cwd'] / Path('nomesatp.txt')
+
     #Grava o tipo de operação requisitada pelo usuário com o comando -c
     comando = argumnt.args.c
 
@@ -575,27 +584,35 @@ def main():
     relaWatch = relaWatcher(make_Rela, arqPaths)
 
 
-    # Tenta ler o arquivo .ANA e daí obter a lista de barras de fronteira e os
-    #circuitos equivalentes conectados a elas.
+    # Verifica a existência do arquivo .ANA
     try:
-        dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
-        equiv = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
-        relaWatch.relaBuffer = ('Ana',1)
+        arqPaths['Ana'].resolve()
     except(FileNotFoundError):
         runTime = 0
         relaWatch.relaBuffer = ('Ana',0)
 
-    # A seguir é feita a seleção do modo de operação do programa, de acordo com
-    #os argumentos que o usuário entrou na linha de comando.
+    # Inicia a execução das operações e obtenção de dados
 
 
     if runTime:
+        
+    # Obtém a lista de barras de fronteira e os circuitos equivalentes 
+    #conectados a elas do arquivo .ANA
+        dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
+        equiv = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
+        relaWatch.relaBuffer = ('Ana',1)
+
+
+    # A seguir é feita a seleção do modo de operação do programa, de acordo com
+    #os argumentos que o usuário entrou na linha de comando.
+
         if 'R' in comando:
-            make_Rncc(arqPaths['Ana'], arqPaths['Rncc'], dbar, equiv)
+            make_Rncc(arqPaths, equiv)
             relaWatch.relaBuffer = ('rncc',)
 
         if 'b' in comando:
             relaWatch.relaBuffer = ('barras', dbar, equiv)  
+
         else:
             try:
                 get_ATP(arqPaths['Atp'].open('r'), dbar, equiv)
@@ -608,15 +625,17 @@ def main():
                 relaWatch.relaBuffer = ('atp', 0)
                 runTime = 0
 
+
         if 's' in comando:
-            make_Source(arqPaths['Src'], dbar)
+            make_Source(arqPaths, dbar)
             relaWatch.relaBuffer = ('src',)
 
         if 'e' in comando:
-            make_Equi(arqPaths['Lib'], equiv, dbar)
+            make_Equi(arqPaths, equiv, dbar)
             relaWatch.relaBuffer = ('equi', dbar, equiv)
 
-    print(ajuda.texto('fim').format(arqPaths['Rela']))
+            sys.exit()
+    # print(ajuda.texto('fim').format(arqPaths['Rela']))
 
 
 

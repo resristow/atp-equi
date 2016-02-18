@@ -24,8 +24,7 @@ O relatório foi gravado em {}.\n\n""",
 "O arquivo {} foi lido com sucesso!\n\n",
 
     'relaErroArq':
-"""You loose, fella! O arquivo {} não foi encontrado. O caminho tentado foi
-{}.
+"""You loose, fella! O arquivo {} não foi encontrado.
 O resto do processamento nem continuou.\n\n""",
 
     'relaSrc':
