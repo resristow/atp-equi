@@ -545,7 +545,12 @@ class relaWatcher():
         self.make_Rela(self._relaBuffer, self.arqPaths)
         self._relaBuffer = 0
 
+    def setter2(self, value):
+        if not value:
+            sys.exit()
+
     relaBuffer = property(fset=setter)
+    runTime = property(fset=setter2)
 
 
 
@@ -575,10 +580,6 @@ def main():
     #Grava o tipo de operação requisitada pelo usuário com o comando -c
     comando = argumnt.args.c
 
-    #Indica se a execução do programa pode continuar. Se ocorrerem erros, ela é
-    # setada em 0 e o programa termina
-    runTime = 1
-    
     #Instancia a classe de monitoramento do status do relatório. Conforme os
     # processos vão avançando, o relatório vai sendo escrito.
     relaWatch = relaWatcher(make_Rela, arqPaths)
@@ -588,53 +589,53 @@ def main():
     try:
         arqPaths['Ana'].resolve()
     except(FileNotFoundError):
-        runTime = 0
         relaWatch.relaBuffer = ('Ana',0)
+        relaWatch.runTime = 0
 
     # Inicia a execução das operações e obtenção de dados
 
 
-    if runTime:
-        
     # Obtém a lista de barras de fronteira e os circuitos equivalentes 
     #conectados a elas do arquivo .ANA
-        dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
-        equiv = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
-        relaWatch.relaBuffer = ('Ana',1)
+    dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
+    equiv = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
 
+    relaWatch.relaBuffer = ('Ana',1)
 
     # A seguir é feita a seleção do modo de operação do programa, de acordo com
     #os argumentos que o usuário entrou na linha de comando.
 
-        if 'R' in comando:
-            make_Rncc(arqPaths, equiv)
-            relaWatch.relaBuffer = ('rncc',)
+    if 'R' in comando:
+        make_Rncc(arqPaths, equiv)
+        relaWatch.relaBuffer = ('rncc',)
 
-        if 'b' in comando:
-            relaWatch.relaBuffer = ('barras', dbar, equiv)  
+    if 'b' in comando:
+        relaWatch.relaBuffer = ('barras', dbar, equiv)  
 
-        else:
-            try:
-                get_ATP(arqPaths['Atp'].open('r'), dbar, equiv)
-                diff = abs(len(arqPaths['Atp'].open('r').readlines()) - len(equiv.get_equiNodes()[1:]))
-                relaWatch.relaBuffer = ('atp', 1)
-                if diff > 0:
-                    relaWatch.relaBuffer = ('diff', diff)
-                    runTime = 0
-            except(FileNotFoundError): 
-                relaWatch.relaBuffer = ('atp', 0)
-                runTime = 0
+    else:
+        try:
+            get_ATP(arqPaths['Atp'].open('r'), dbar, equiv)
+            diff = abs(len(arqPaths['Atp'].open('r').readlines()) - len(equiv.get_equiNodes()[1:]))
+            relaWatch.relaBuffer = ('atp', 1)
+            if diff > 0:
+                relaWatch.relaBuffer = ('diff', diff)
+                relaWatch.runTime = 0
+        except(FileNotFoundError): 
+            relaWatch.relaBuffer = ('atp', 0)
+            relaWatch.runTime = 0
 
 
-        if 's' in comando:
-            make_Source(arqPaths, dbar)
-            relaWatch.relaBuffer = ('src',)
+    if 's' in comando:
+        make_Source(arqPaths, dbar)
+        relaWatch.relaBuffer = ('src',)
 
-        if 'e' in comando:
-            make_Equi(arqPaths, equiv, dbar)
-            relaWatch.relaBuffer = ('equi', dbar, equiv)
+    if 'e' in comando:
+        make_Equi(arqPaths, equiv, dbar)
+        relaWatch.relaBuffer = ('equi', dbar, equiv)
 
-            sys.exit()
+    # FIM DA EXECUÇÃO
+    relaWatch.relaBuffer = ('fim',)
+
     # print(ajuda.texto('fim').format(arqPaths['Rela']))
 
 

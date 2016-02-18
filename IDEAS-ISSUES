@@ -1,9 +1,3 @@
-ISSUES:
-
-
 IDEAS:
-001 - Rodar os níveis de curto-circuito no ATP também para comparar com os do Anafas
-002 - Sugerir nomes de barras de atp
-*003- O comando -P altera a pasta de trabalho, onde todos os arquivos de entrada e saída serão manipulados. Os arquivos equivalentes.lib e sources.lib serão criados nessa pasta de trabalho com o nome do arquivo .ANA mais '-equivalentes.lib' ou '-sources.lib'. Isso será feito para o relatório (*-relatorio.REL), para o RNCC (*-RNCC.rel).
-004 - Usar a variável runTime com Descriptor para poder parar a execução facilmente
-
+Rodar os níveis de curto-circuito no ATP também para comparar com os do Anafas
+Sugerir nomes de barras de atp
