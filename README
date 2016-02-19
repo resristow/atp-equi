@@ -1,0 +1,113 @@
+
+Aplicativo em linha de comando para importação no ATP do sistema equivalentado
+no Anafas.
+
+Desenvolvedor: Rafael Eduardo Schneider Ristow (resristow)
+________________________________________________________________________________
+
+
+A Licença de uso está no arquivo LICENSE.
+
+Site para avisar sobre Bugs e Melhorias, entrar em contato com o desenvolvedor, 
+baixar outra cópia em formato binário:
+https://bitbucket.org/resristow/atp-equi/
+
+________________________________________________________________________________
+
+USO GERAL:
+> atp-equi.exe [-h] [-c [Comando]]  [-P [Caminhos]]
+
+
+EXEMPLOS DE USO:
+
+Obtenção dos equivalentes do ATP e o relatório de níveis de curto-circuito:
+> atp-equi.exe -c eR
+
+Impressão das barras de fronteira:
+> atp-equi.exe -c b
+
+Obtenção dos equivalentes do ATP e cartão SOURCE com as fontes do equivalente:
+> atp-equi.exe -c es
+
+Mudar a Pasta de Trabalho para uma subpasta de nome 'TRT':
+> atp-equi.exe -P cwd=./TRT
+
+Usar o arquivo BR1612.ANA dentro desta pasta 'TRT':
+> atp-equi.exe -P cwd=./TRT ana=BR1612.ANA
+
+Mesmo exemplo acima e também requisitando os equivalentes do ATP e o relatório 
+de níveis de curto-circuito:
+> atp-equi.exe -c eR -P cwd=./TRT ana=BR1612.ANA
+
+
+
+Se nenhum argumento for fornecido, o aplicativo utilizará os valores padrão:
+
+- Pasta de trabalho = mesma pasta do arquivo executável do aplicativo
+- Arquivo .ANA = equi.ana
+- Arquivo com nomes dos nós do ATP = nomesatp.txt
+
+- Comando = [es] Cria o arquivos .lib de equivalentes e fontes para o ATP.
+
+
+________________________________________________________________________________
+
+DESCRIÇÃO DOS ARGUMENTOS:
+
+--- [h] - Ajuda
+Mostra uma ajuda sucinta e termina.
+
+
+
+--- Comandos da opção [-c]
+Uso: atp-equi.exe -c [e | s | R | b]
+
+- [e] Comando para criação de Equivalentes:
+
+O programa lê os arquivos com os dados de curto-circuito (.ANA) e com os nomes
+dos nós do ATP para em seguida criar um arquivo-cartão /BRANCH para o ATP.
+O nome desse arquivo será obtido a partir do arquivo com os dados de curto-cir-
+cuito <arquivo>.ANA, com a seguinte regra: <arquivo>-equivalentes.lib.
+
+- [s] Comando para criação de arquivo-cartão /SOURCE com as fontes equivalentes
+
+O programa lê os arquivos com os dados de curto-circuito (.ANA) e com os nomes
+dos nós do ATP para em seguida criar um arquivo-cartão /SOURCE para o ATP.
+O nome desse arquivo será obtido a partir do arquivo com os dados de curto-cir-
+cuito <arquivo>.ANA, com a seguinte regra: <arquivo>-sources.lib.
+
+- [R] Comando para execução de um Relatório de Níveis de Curto-Circuito
+
+O programa lê o arquivo com os dados de curto-circuito (.ANA) e executa o
+Anafas para a criação de um Relatório de Níveis de Curto-Circuito de todas as
+barras de fronteira do equivalente.
+OBS.: Poderá haver barras isoladas, sem fontes, resultando num Nível de Curto-
+circuito nulo.
+
+- [b] Imprime a lista de barras de fronteira do arquivo .ANA
+
+Esse comando é útil para compor a lista de nomes do ATP.
+O programa lê o arquivo com os dados de curto-circuito (.ANA) e imprime as bar-
+ras de fronteira.
+
+
+
+--- Caminhos da opção [-P]
+
+Uso: atp-equi.exe -P [cwd | a | A]=caminho
+
+- [cwd]       Altera a Pasta de Trabalho padrão
+A Pasta de Trabalho padrão é a mesma do atp-equi.exe.
+
+- [ana]       Altera o nome padrão do arquivo .ANA (equi.ana)
+
+- [nomes-atp] Altera o nome padrão do arquivo de nomes do ATP (nomesatp.txt)
+
+________________________________________________________________________________
+
+ARQUIVOS DE SAÍDA
+
+- Arquivo -relatorio.rel com os resultados do processamento.
+- Arquivo .lib com os equivalentes para o ATP (comando 'e')
+- Arquivo .lib com as fontes para o ATP (comando 's')
+- Arquivo -rncc.rel com o relatório de níveis de curto-circuito (comando 'R')
