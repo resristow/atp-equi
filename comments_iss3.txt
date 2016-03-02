@@ -1,0 +1,8 @@
+- Ele lerá um arquivo .csv que terá uma coluna "Nome ATP" "EPE" "ONS";
+- Se o usuário não fornecer o seu, o programa possui isso internamente (possibilita customização)
+
+- Será feita uma busca nesse arquivo pelos nomes de barra do .ANA. Caso não seja encontrado algum, será emitido um AVISO e se usará um método para nomear o nó;
+
+- Continua sendo impresso o nome da barra .ANA e do nó ATP;
+
+- Se o usuário requisitar um cartão com a rede interna, o algoritmo tratará as barras internas também.
