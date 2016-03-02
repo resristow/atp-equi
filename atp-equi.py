@@ -1,13 +1,19 @@
-import ajuda
+import textos
 from pathlib import Path
 import argparse
 from math import *
 import subprocess
 import win32api
 import win32com.client
-
-# para debugging
 import sys
+import datetime
+
+
+# x.y.z
+# x = major change
+# y = Minor change
+# z = bugfix
+VERSION = "0.1.0"
 
 
 class args_Handler():
@@ -477,50 +483,56 @@ def make_Rela(relaBuffer, arqPaths):
     'equi' + conjunto de barras equivalentes + conjunto de circuitos equivalen-
     tes - Referente à impressão no relatório dos dados de barras do equivalente.
 
-    Essa função chama o arquivo ajuda.py, que possui os textos padrão para escre
+    Essa função chama o arquivo textos.py, que possui os textos padrão para escre
     ver no relatório.
     """
 
     rela = arqPaths['Ana'].parent / Path(arqPaths['Ana'].stem + '-relatorio.rel')
-    
-    if 'Ana' in relaBuffer[0]:
+
+    if 'welcome' in relaBuffer:
+
         #Compõe o nome do arquivo de relatório a partir do nome do arquino .ANA
         rela = rela.open('w')
+        data = datetime.datetime.now(GMT1())
+        rela.write(textos.texto['welcome'].format(VERSION, data.day, data.month, data.year, data.hour, data.minute))
         
-        if not relaBuffer[1]:
-            rela.write(ajuda.texto('relaErroArq').format(arqPaths['Ana'].absolute()))
-        else: rela.write(ajuda.texto('relaArq').format(arqPaths['Ana'].resolve()))
     else: rela = rela.open('a') 
 
+    
+    if 'Ana' in relaBuffer[0]:
+        if not relaBuffer[1]:
+            rela.write(textos.texto['relaErroArq'].format(arqPaths['Ana'].absolute()))
+        else: rela.write(textos.texto['relaArq'].format(arqPaths['Ana'].resolve()))
+
     if 'rncc' in relaBuffer[0]:
-        rela.write(ajuda.texto('relaRncc').format(arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].resolve().stem) + '-rncc.rel')))
+        rela.write(textos.texto['relaRncc'].format(arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].resolve().stem) + '-rncc.rel')))
 
     if 'barras' in relaBuffer[0]:
         barrasEquiv = relaBuffer[2].get_equiNodes()[1:]
-        rela.write(ajuda.texto('relaBarra').format(len(barrasEquiv)))
+        rela.write(textos.texto['relaBarra'].format(len(barrasEquiv)))
 
         rela.write('{0:^6s} {1:<11s} {2:^6s}\n'\
-            .format(*ajuda.texto('cabecalho', query='list')))
+            .format(*textos.texto['cabecalho'].split()))
         for barra in barrasEquiv:
             rela.write('{0:^6d} {1:<12s} {2!s:^6}\n'.format(barra, relaBuffer[1].get_nomeAna(barra), relaBuffer[1].get_vBase(barra)))
 
     if 'atp' in relaBuffer[0]:
         if not relaBuffer[1]:
-            rela.write(ajuda.texto('relaErroArq').format(arqPaths['Atp'], Path.cwd()/arqPaths['Atp']))
-        else: rela.write(ajuda.texto('relaArq').format(arqPaths['Atp'].name))
+            rela.write(textos.texto['relaErroArq'].format(arqPaths['Atp'], Path.cwd()/arqPaths['Atp']))
+        else: rela.write(textos.texto['relaArq'].format(arqPaths['Atp'].name))
 
     if 'diff' in relaBuffer[0]:
-        rela.write(ajuda.texto('relaErroDiff').format(relaBuffer[1]))
+        rela.write(textos.texto['relaErroDiff'].format(relaBuffer[1]))
 
     if 'src' in relaBuffer[0]:
-        rela.write(ajuda.texto('relaSrc').format(arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-source.lib')))
+        rela.write(textos.texto['relaSrc'].format(arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-source.lib')))
 
     if 'equi' in relaBuffer[0]:
         fontes = set()
         for barra in relaBuffer[2].get_equiNodes():
             fontes.add(relaBuffer[1].get_nomeGerAtp(barra))
-        rela.write(ajuda.texto('relaEqui').format(Path.cwd()/arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-equivalentes.lib'), len(relaBuffer[2].get_equiNodes()), len(fontes)-1))
-        rela.write('{:^6}{:^15}{:^10}{:^10}\n'.format(*ajuda.texto('cabecalhoF', query='list')))
+        rela.write(textos.texto['relaEqui'].format(Path.cwd()/arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-equivalentes.lib'), len(relaBuffer[2].get_equiNodes()), len(fontes)-1))
+        rela.write('{:^6}{:^15}{:^10}{:^10}\n'.format(*textos.texto['cabecalhoF'].split()))
         for barra in relaBuffer[2].get_equiNodes():
             rela.write('{:^6d}{:^15}{:^11}{:^11}\n'.format(barra, relaBuffer[1].get_nomeAna(barra), relaBuffer[1].get_nomeAtp(barra), relaBuffer[1].get_nomeGerAtp(barra)))
         
@@ -554,8 +566,20 @@ class relaWatcher():
 
 
 
+class GMT1(datetime.tzinfo):
+    "Faz o fuso-horário local"
+    def utcoffset(self, dt):
+        return datetime.timedelta(hours=-3)
+    def dst(self, dt):
+        return datetime.timedelta(0)
+
+
+
 
 def main():
+
+    # Trata dos argumentos de linha de comando
+    argumnt = args_Handler()
 
     #Definição da estrutura do dicionário com os caminhos para os arquivos de
     #entrada e saída
@@ -563,9 +587,6 @@ def main():
     arqPaths = {'Ana' : '',
                 'Atp' : '',
                 'cwd' : ''}
-
-    #Instancia a classe que trata dos argumentos de linha de comando
-    argumnt = args_Handler()
 
     #Verifica e busca os caminhos de arquivo fornecidos se o usuário assim optou
     #na linha de comando com o argumento -P
@@ -583,6 +604,11 @@ def main():
     #Instancia a classe de monitoramento do status do relatório. Conforme os
     # processos vão avançando, o relatório vai sendo escrito.
     relaWatch = relaWatcher(make_Rela, arqPaths)
+
+    # Imprime a mensagem de boas-vindas
+    data = datetime.datetime.now(GMT1())
+    print(textos.texto['welcome'].format(VERSION, data.day, data.month, data.year, data.hour, data.minute))
+    relaWatch.relaBuffer = ('welcome',)
 
 
     # Verifica a existência do arquivo .ANA
@@ -636,7 +662,7 @@ def main():
     # FIM DA EXECUÇÃO
     relaWatch.relaBuffer = ('fim',)
 
-    # print(ajuda.texto('fim').format(arqPaths['Rela']))
+    # print(textos.texto['fim'].format(arqPaths['Rela']))
 
 
 

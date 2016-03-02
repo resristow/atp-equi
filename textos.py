@@ -1,9 +1,21 @@
 """
 Textos de ajuda ao usuário
 """
-from textwrap import fill
 
-textos_crus={
+texto={
+    'welcome': 
+"""
+ ||================================
+ ||ATP-EQUI                       || 
+ ||Autor: RES Ristow              ||
+ ||                               ||
+ ||Versão {}                   ||
+ ||                               ||
+ ||{:0^2}/{:0^2}/{} - {:2}h{:0^2}min          ||
+ ||================================
+
+""",
+
     'cabecalho':
         'NÚMERO NOME TENSÃO',
 
@@ -43,11 +55,4 @@ O processamento será interrompido. Verifique os dados.\n""",
 
     'fim':
 "O processamento chegou ao fim! Informações em {}."
-}
-
-def texto (escolha, query='string'):
-    escolhido = textos_crus[escolha]
-    if 'list' in query.lower(): 
-        return escolhido.split()
-    if 'string' in query.lower(): return escolhido
-    
+}    
