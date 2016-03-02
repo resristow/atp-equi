@@ -557,8 +557,6 @@ class relaWatcher():
 
 def main():
 
-    print('Programa iniciou')
-
     #Definição da estrutura do dicionário com os caminhos para os arquivos de
     #entrada e saída
 
