@@ -248,8 +248,23 @@ def get_ATP(arquivo, dbar, equiv):
     dos, que é uma desgraça para o ATP.
     Por fim, cria-se uma sequência de nomes de nó com geradores para o ATP."""
 
+    arquivo.readline()
+    if 'EPE' in arquivo.readline().rstrip('\n').split('\t')[5]: opcao = 1
+    else: opcao = 3
+
+    tabela_Nomes = {}
+
+    for linha in arquivo:
+        num_barra = int(linha.rstrip('\n').split('\t')[opcao])
+        nome_barra = linha.rstrip('\n').split('\t')[opcao + 1]
+        nome_ATP = linha.rstrip('\n').split('\t')[0]
+        coment = linha.rstrip('\n').split('\t')[5]
+
+        tabela_Nomes[num_barra] = [nome_barra, nome_ATP, coment]
+
+    sys.exit()
+
     for barra in equiv.get_equiNodes()[1:]:
-        nomeATP = arquivo.readline().strip()
         dbar.alter(numAna = barra, dado = nomeATP, attr = 'nomeAtp')
         try: 
             if equiv.get_tipo((barra,0)) == 'G':
@@ -257,7 +272,7 @@ def get_ATP(arquivo, dbar, equiv):
         except: pass
 
 
-    dbar.check_repGerATP() 
+    dbar.check_repGerATP()
 
     dbar.check_repATP()
 
@@ -596,7 +611,7 @@ def main():
     #muda o diretório de trabalho para o que o usuário optou.
     if not arqPaths['cwd']: arqPaths['cwd'] = Path.cwd()
     if not arqPaths['Ana']: arqPaths['Ana'] = arqPaths['cwd'] / Path('equi.ana')
-    if not arqPaths['Atp']: arqPaths['Atp'] = arqPaths['cwd'] / Path('nomesatp.txt')
+    if not arqPaths['Atp']: arqPaths['Atp'] = arqPaths['cwd'] / Path('nomesatp.csv')
 
     #Grava o tipo de operação requisitada pelo usuário com o comando -c
     comando = argumnt.args.c
@@ -641,6 +656,9 @@ def main():
     else:
         try:
             get_ATP(arqPaths['Atp'].open('r'), dbar, equiv)
+
+            sys.exit()
+
             diff = abs(len(arqPaths['Atp'].open('r').readlines()) - len(equiv.get_equiNodes()[1:]))
             relaWatch.relaBuffer = ('atp', 1)
             if diff > 0:

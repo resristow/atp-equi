@@ -1,3 +1,7 @@
+Parei na função get_ATP, na parte em que, após ler o .csv (já implementado), ele entra com os valores nos dados dos nós através da função dbar.alter. (Ainda não implementado)
+
+
+
 - Ele lerá um arquivo .csv que terá uma coluna "Nome ATP" "EPE" "ONS";
 - Se o usuário não fornecer o seu, o programa possui isso internamente (possibilita customização)
 
