@@ -141,7 +141,10 @@ class Branches:
         for n in branch.paramsOhm:
             if branch.params[n] == 9999.99:
                 branch.paramsOhm[n] = 999999
-            else: branch.paramsOhm[n] = branch.params[n] * dbar.get_vBase(branch.nodes[0])**2/10000
+            else: branch.paramsOhm[n] = specialFloat(branch.params[n] * 
+                        dbar.get_vBase(branch.nodes[0])**2/10000)
+            # else: branch.paramsOhm[n] = branch.params[n] * \
+            #             dbar.get_vBase(branch.nodes[0])**2/10000
 
     def get_equiNodes(self):
         barrasEquiv = set()
@@ -167,6 +170,8 @@ class branch:
     Inicialmente o circuito é criado com parâmetros zeros, até ser solicitado a
     inclusão dos valores obtidos do arquivo .ANA (addLinha)
     """
+
+
     def __init__(self, linha):
         self.nodes = (0,0)
         self.tipo = ''
@@ -201,6 +206,17 @@ class branch:
             else: self.tipo = linha[16]
 
 
+class specialFloat(float):
+    def __str__ (self):
+        valor = self.__float__()
+        if valor != 0:
+            if log10(valor) < -4:
+                temp = modf(valor*10**-round(log10(valor)))
+                s = str(temp[1]*10**round(log10(valor)))
+                return s[0] + '.' + s[1:]
+            else: return str(valor)
+        else:
+            return str(valor)
 
 
 # FUNÇÕES ---------------------------------------------------------------------#
@@ -261,20 +277,6 @@ def get_ATP(arquivo, dbar, equiv):
 
     dbar.check_repATP()
 
-
-def percentOhm(params, vbas):
-    "Converte determinada sequência de parâmetros em \% para Ohms"
-    paramsOhm = []
-    for item in params[3:]:
-        paramsOhm.append([])
-        for valor in item:
-            if valor == 999999:
-                paramsOhm[params[3:].index(item)].append('999999')
-            else:
-                base = vbas[params[0][item.index(valor)]]**2/100
-                paramsOhm[params[3:].index(item)].append(str(valor*base/100)[:6])
-    return paramsOhm
-
 def make_Equi(arqPaths, equiv, dbar):
     """Funçaõ para compor o arquivo-cartão /BRANCH com extensão .lib, do ATP,
     que irá conter a rede equivalentada pelo Anafas."""
@@ -327,11 +329,11 @@ def make_Equi(arqPaths, equiv, dbar):
         # A seguir, é feita a escrita dos dados do circuito no arquivo-cartão.
 
         arquivo.write('51{}{:6}'.format(nodeFrom[0],nodeTo[0]) + 12*' ' + 
-            '{0!s:<.6}'.format(branch.paramsOhm['r0']) + 6*' ' +
-            '{0!s:<.12}'.format(branch.paramsOhm['x0']) + '\n')
+            '{0!s:<6.6}'.format(branch.paramsOhm['r0']) + 6*' ' +
+            '{0!s:<12.12}'.format(branch.paramsOhm['x0']) + '\n')
         arquivo.write('52{}{:6}'.format(nodeFrom[1],nodeTo[1]) + 12*' ' + 
-            '{0!s:<.6}'.format(branch.paramsOhm['r1']) + 6*' ' +
-            '{0!s:<.12}'.format(branch.paramsOhm['x1']) + '\n')
+            '{0!s:<6.6}'.format(branch.paramsOhm['r1']) + 6*' ' +
+            '{0!s:<12.12}'.format(branch.paramsOhm['x1']) + '\n')
         arquivo.write('53' + nodeFrom[2] + nodeTo[2] + '\n')
 
         # Se for um transformador, é colocado um transformador ideal para fazer
