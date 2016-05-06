@@ -7,6 +7,7 @@ import win32api
 import win32com.client
 import sys
 import datetime
+from openpyxl import load_workbook
 
 
 # x.y.z
@@ -29,6 +30,9 @@ class args_Handler():
         parser.add_argument('-P', default='', metavar='Path', nargs='*', 
                         help="""Muda o caminho da Pasta de Trabalho. O padrão é 
                         mesma pasta do arquivo de execução do programa.""")
+        parser.add_argument('-base', default='', metavar='Base de Nomes',nargs='?',
+                        help="""Especifica ao programa qual base de dados usar para
+                        obter os nomes dos nós no arquivo. csv""")
         self.args = parser.parse_args()
 
     def check_Paths(self, arqPaths):
@@ -240,7 +244,7 @@ def get_EQUIV(arquivo, colecao, dbar):
         if (flag == 1) and ('99999' in linha[0:6]): break
     return equiv
 
-def get_ATP(arquivo, dbar, equiv):
+def get_ATP(arquivo, dbar, equiv, base):
     """Faz a leitura do arquivo de texto com os nomes das barras de fronteira 
     para o ATP.
     Esses nomes são acrescentados nas instâncias dos nós.
@@ -248,33 +252,39 @@ def get_ATP(arquivo, dbar, equiv):
     dos, que é uma desgraça para o ATP.
     Por fim, cria-se uma sequência de nomes de nó com geradores para o ATP."""
 
-    arquivo.readline()
-    if 'EPE' in arquivo.readline().rstrip('\n').split('\t')[5]: opcao = 1
-    else: opcao = 3
+    wb = load_workbook(str(arquivo))
+
+    ws = wb.worksheets[0]
+
+    if base.lower() == 'epe': offset = 1
+    if base.lower() == 'ons': offset = 3
 
     tabela_Nomes = {}
 
-    for linha in arquivo:
-        num_barra = int(linha.rstrip('\n').split('\t')[opcao])
-        nome_barra = linha.rstrip('\n').split('\t')[opcao + 1]
-        nome_ATP = linha.rstrip('\n').split('\t')[0]
-        coment = linha.rstrip('\n').split('\t')[5]
+    for linha in ws.rows[1:]:
+        num_barra = int(linha[offset].value)
+        nome_barra = linha[offset + 1].value
+        nome_ATP = linha[0].value
 
-        tabela_Nomes[num_barra] = [nome_barra, nome_ATP, coment]
+        tabela_Nomes[num_barra] = [nome_barra, nome_ATP]
 
-    sys.exit()
+    missing = []
 
     for barra in equiv.get_equiNodes()[1:]:
-        dbar.alter(numAna = barra, dado = nomeATP, attr = 'nomeAtp')
+        try:
+            dbar.alter(numAna = barra, dado = tabela_Nomes[barra][1], attr = 'nomeAtp')
+        except(KeyError): missing.append((barra, dbar.get_nomeAna(barra)))
         try: 
             if equiv.get_tipo((barra,0)) == 'G':
-                dbar.alter(numAna = barra, dado = 'F' + nomeATP[:-1], attr = 'nomeGerAtp')
+                dbar.alter(numAna = barra, dado = 'F' + tabela_Nomes[barra][1][:-1], attr = 'nomeGerAtp')
         except: pass
 
 
     dbar.check_repGerATP()
 
     dbar.check_repATP()
+
+    return missing
 
 
 def percentOhm(params, vbas):
@@ -536,8 +546,10 @@ def make_Rela(relaBuffer, arqPaths):
             rela.write(textos.texto['relaErroArq'].format(arqPaths['Atp'], Path.cwd()/arqPaths['Atp']))
         else: rela.write(textos.texto['relaArq'].format(arqPaths['Atp'].name))
 
-    if 'diff' in relaBuffer[0]:
-        rela.write(textos.texto['relaErroDiff'].format(relaBuffer[1]))
+    if 'miss' in relaBuffer[0]:
+        rela.write(textos.texto['relaErroMiss'])
+        for barra in relaBuffer[1]:
+            rela.write(str(barra[0]) + ' - ' + barra[1])
 
     if 'src' in relaBuffer[0]:
         rela.write(textos.texto['relaSrc'].format(arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-source.lib')))
@@ -611,7 +623,7 @@ def main():
     #muda o diretório de trabalho para o que o usuário optou.
     if not arqPaths['cwd']: arqPaths['cwd'] = Path.cwd()
     if not arqPaths['Ana']: arqPaths['Ana'] = arqPaths['cwd'] / Path('equi.ana')
-    if not arqPaths['Atp']: arqPaths['Atp'] = arqPaths['cwd'] / Path('nomesatp.csv')
+    if not arqPaths['Atp']: arqPaths['Atp'] = arqPaths['cwd'] / Path('nomesatp.xlsx')
 
     #Grava o tipo de operação requisitada pelo usuário com o comando -c
     comando = argumnt.args.c
@@ -655,18 +667,16 @@ def main():
 
     else:
         try:
-            get_ATP(arqPaths['Atp'].open('r'), dbar, equiv)
+            missing = get_ATP(arqPaths['Atp'], dbar, equiv, argumnt.args.base)
 
-            sys.exit()
-
-            diff = abs(len(arqPaths['Atp'].open('r').readlines()) - len(equiv.get_equiNodes()[1:]))
-            relaWatch.relaBuffer = ('atp', 1)
-            if diff > 0:
-                relaWatch.relaBuffer = ('diff', diff)
-                relaWatch.runTime = 0
         except(FileNotFoundError): 
             relaWatch.relaBuffer = ('atp', 0)
             relaWatch.runTime = 0
+
+
+        if missing:
+            print(missing)
+            relaWatch.relaBuffer = ('miss', missing)
 
 
     if 's' in comando:
