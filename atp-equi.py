@@ -13,7 +13,7 @@ import datetime
 # x = major change
 # y = Minor change
 # z = bugfix
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 
 class args_Handler():
@@ -217,12 +217,21 @@ class specialFloat(float):
     """Classe herdada de float para poder mudar o comportamento do metodo 
      __str__, que controla como eh feita a conversao do float para string"""
     def __str__ (self):
+
         valor = self.__float__()
+
         if valor > 0:
             if log10(valor) < -4:
-                temp = modf(valor*10**-round(log10(valor)))
-                s = str(temp[1]*10**round(log10(valor)))
+                temp = modf(valor*10**-floor(log10(valor)))
+                s = str(temp[1]*10**floor(log10(valor)))
                 return s[0] + '.' + s[1:]
+
+            elif log10(valor) >= 6:
+                print('bigon', valor)
+                temp = round(valor*10**-floor(log10(valor)),1)
+                return str(temp) + 'e' + str(floor(log10(valor)))
+
+
             else: return str(valor)
 
         elif valor == 0:
