@@ -926,7 +926,7 @@ DCIR
 50213      0   1 .068471.6457.111711.0807EQUIV.                      998        YN                                                                                                                     Equivalente shunt
 44841      0   1  -4155159513.002968.6995EQUIV.                      998        YN                                                                                                                     Equivalente shunt
 44657      0   1 999999999999-25746-2473.EQUIV.                      998        YN                                                                                                                     Equivalente shunt
- 8800      0   1 .2E-1415.734      5.8442EQUIV.                      998        YN                                                                                                                     Equivalente shunt
+ 8800      0   1 -.2E-815.734      5.8442EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7928      0   1 999999999999 28813135968EQUIV.                      998        YN                                                                                                                     Equivalente shunt
  7926   7928   1 .27625.691761.12162.4693EQUIV.                      998                                                                                                                               Equivalente serie
  7926      0   1 999999999999 28813135968EQUIV.                      998        YN                                                                                                                     Equivalente shunt

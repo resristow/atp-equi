@@ -11,7 +11,7 @@ texto={
  ||                               ||
  ||Versão {}                   ||
  ||                               ||
- ||{:^2}/{:^2}/{} - {:2}h{:0^2}min          ||
+ ||{:0>2}/{:0>2}/{} - {:2}h{:0>2}min          ||
   =================================
 
 """,
@@ -54,5 +54,10 @@ nomes de barras para o ATP. A diferença é de {!s} barra(s).
 O processamento será interrompido. Verifique os dados.\n""",
 
     'fim':
-"O processamento chegou ao fim! Informações em {}."
+"O processamento chegou ao fim! Informações em {}.",
+
+    'Negs':
+"""
+Há valores negativos no .ANA. Segue a lista de circuitos equivalentes com
+valores negativos:\n"""
 }    

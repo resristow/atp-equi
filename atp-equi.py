@@ -135,16 +135,20 @@ class node:
 class Branches:
     def __init__(self):
         self.branches = {}
+        self.negs = []
 
     def addBranch(self, branch, dbar):
         self.branches[branch.nodes] = branch
+
+        for param in branch.params.values():
+            if param < 0: self.negs.append(branch.nodes)
+
+        # Calcula os valores em Ohm
         for n in branch.paramsOhm:
             if branch.params[n] == 9999.99:
                 branch.paramsOhm[n] = 999999
             else: branch.paramsOhm[n] = specialFloat(branch.params[n] * 
                         dbar.get_vBase(branch.nodes[0])**2/10000)
-            # else: branch.paramsOhm[n] = branch.params[n] * \
-            #             dbar.get_vBase(branch.nodes[0])**2/10000
 
     def get_equiNodes(self):
         barrasEquiv = set()
@@ -188,14 +192,17 @@ class branch:
                 if '.' in linha[17:23]: self.params['r1'] = float(linha[17:23])
                 else: self.params['r1'] = float(linha[17:23])/100
             except(ValueError):self.params['r1'] = 0
+
             try:
                 if '.' in linha[23:29]: self.params['x1'] = float(linha[23:29])
                 else: self.params['x1'] = float(linha[23:29])/100
             except(ValueError): self.params['x1'] = 0
+
             try:
                 if '.' in linha[29:35]: self.params['r0'] = float(linha[29:35])
                 else: self.params['r0'] = float(linha[29:35])/100
             except(ValueError): self.params['r0'] = 0
+
             try:
                 if '.' in linha[35:41]: self.params['x0'] = float(linha[35:41])
                 else: self.params['x0'] = float(linha[35:41])/100
@@ -207,16 +214,24 @@ class branch:
 
 
 class specialFloat(float):
+    """Classe herdada de float para poder mudar o comportamento do metodo 
+     __str__, que controla como eh feita a conversao do float para string"""
     def __str__ (self):
         valor = self.__float__()
-        if valor != 0:
+        if valor > 0:
             if log10(valor) < -4:
                 temp = modf(valor*10**-round(log10(valor)))
                 s = str(temp[1]*10**round(log10(valor)))
                 return s[0] + '.' + s[1:]
             else: return str(valor)
+
+        elif valor == 0:
+            return '0.0'
+
         else:
-            return str(valor)
+            if log10(abs(valor)) < -4: return '0.0'
+            else: return str(valor)
+
 
 
 # FUNÇÕES ---------------------------------------------------------------------#
@@ -506,6 +521,12 @@ def make_Rela(relaBuffer, arqPaths):
             rela.write(textos.texto['relaErroArq'].format(arqPaths['Ana'].absolute()))
         else: rela.write(textos.texto['relaArq'].format(arqPaths['Ana'].resolve()))
 
+    if 'Negs' in relaBuffer[0]:
+        rela.write(textos.texto['Negs'])
+        for neg in relaBuffer[1]:
+            rela.write(str(neg[0]) + ' - ' + str(neg[1]) + '\n')
+        rela.write('\n')
+
     if 'rncc' in relaBuffer[0]:
         rela.write(textos.texto['relaRncc'].format(arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].resolve().stem) + '-rncc.rel')))
 
@@ -620,6 +641,8 @@ def main():
         relaWatch.relaBuffer = ('Ana',0)
         relaWatch.runTime = 0
 
+    relaWatch.relaBuffer = ('Ana',1)
+
     # Inicia a execução das operações e obtenção de dados
 
 
@@ -628,7 +651,9 @@ def main():
     dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
     equiv = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
 
-    relaWatch.relaBuffer = ('Ana',1)
+    if equiv.negs:
+        relaWatch.relaBuffer = ('Negs', equiv.negs) 
+
 
     # A seguir é feita a seleção do modo de operação do programa, de acordo com
     #os argumentos que o usuário entrou na linha de comando.
