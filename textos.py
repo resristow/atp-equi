@@ -47,11 +47,9 @@ O arquivo {} foi gravado com sucesso!\n\n""",
 """O arquivo {} foi gerado com sucesso! Foram encontradas {!s} barras com 
 equivalentes conectados, sendo que {!s} são fontes. A lista completa de barras é apresentada abaixo.\n\n""",
 
-    'relaErroDiff':
-"""You loose, fella! O número de barras com equivalentes conectados do arquivo .ANA é
-diferente da quantidade total de barras fornecidas no arquivo com os
-nomes de barras para o ATP. A diferença é de {!s} barra(s).
-O processamento será interrompido. Verifique os dados.\n""",
+    'relaErroMiss':
+"""You loose, fella! Alguns nomes de nós do ATP não foram encontrados na plani-
+lha. Favor complementar a lista. Seguem abaixo as barras faltantes:\n""",
 
     'fim':
 "O processamento chegou ao fim! Informações em {}.",
