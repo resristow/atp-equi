@@ -13,7 +13,7 @@ import datetime
 # x = major change
 # y = Minor change
 # z = bugfix
-VERSION = "0.1.0"
+VERSION = "1.0.1"
 
 
 class args_Handler():
