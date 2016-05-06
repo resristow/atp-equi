@@ -265,9 +265,10 @@ def get_EQUIV(arquivo, colecao, dbar):
     flag = 0
     equiv = colecao
     for linha in arquivo:
-        if '998' in linha[65:75]:
-            equiv.addBranch(branch(linha), dbar)
-            flag = 1
+        if '(' not in linha:
+            if '998' in linha[65:75]:
+                equiv.addBranch(branch(linha), dbar)
+                flag = 1
         if (flag == 1) and ('99999' in linha[0:6]): break
     return equiv
 
