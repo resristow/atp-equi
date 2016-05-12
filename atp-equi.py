@@ -30,7 +30,7 @@ class args_Handler():
         parser.add_argument('-P', default='', metavar='Path', nargs='*', 
                         help="""Muda o caminho da Pasta de Trabalho. O padrão é 
                         mesma pasta do arquivo de execução do programa.""")
-        parser.add_argument('-base', default='', metavar='Base de Nomes',nargs='?',
+        parser.add_argument('-base', default='epe', metavar='Base de Nomes',nargs='?',
                         help="""Especifica ao programa qual base de dados usar para
                         obter os nomes dos nós no arquivo. csv""")
         self.args = parser.parse_args()
@@ -231,7 +231,6 @@ class specialFloat(float):
                 return s[0] + '.' + s[1:]
 
             elif log10(valor) >= 6:
-                print('bigon', valor)
                 temp = round(valor*10**-floor(log10(valor)),1)
                 return str(temp) + 'e' + str(floor(log10(valor)))
 
