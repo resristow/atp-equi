@@ -59,7 +59,7 @@ class args_Handler():
 
 class Nodes:
     """Coleção de barras do equivalente.
-    As barras/nós são representados pela Classe node. Aqui elas são concentradas
+    As barras/nós são representados pela Classe 'node'. Aqui elas são concentradas
     num dicionário, 'nodes'.
     """
     def __init__(self):
@@ -98,21 +98,22 @@ class Nodes:
         repGerATP = set()
 
         for barra in self.get_all():
-            if self.get_nomeGerAtp(barra.numAna) != '':
-                if self.get_nomeGerAtp(barra.numAna) in repGerATP: 
-                    self.alter(numAna = barra.numAna, attr = 'nomeGerAtp', dado = 'F' + self.get_nomeGerAtp(barra)[:-1])
+            gerName = self.get_nomeGerAtp(barra.numAna)
+            if gerName != '':
+                if gerName in repGerATP: 
+                    self.alter(numAna = barra.numAna, attr = 'nomeGerAtp', dado = 'F' + gerName[:-1])
                     self.check_repGerATP()
-                repGerATP.add(self.get_nomeGerAtp(barra.numAna))
+                repGerATP.add(gerName)
 
     def check_repATP(self):
         tempRep = set()
 
         for barra in self.get_all():
-            if self.get_nomeAtp(barra.numAna) != '':
-                if self.get_nomeAtp(barra.numAna) in tempRep:
-                    self.repATP.add(self.get_nomeAtp(barra.numAna))
-                tempRep.add(self.get_nomeAtp(barra.numAna))
-
+            atpName = self.get_nomeAtp(barra.numAna)
+            if atpName != '':
+                if atpName in tempRep:
+                    self.repATP.add(atpName)
+                tempRep.add(atpName)
 
 
 class node:
@@ -142,8 +143,10 @@ class Branches:
         self.negs = []
 
     def addBranch(self, branch, dbar):
+        # Acrescenta no dicionário 'self.branches' o novo circuito (ou ramo)
         self.branches[branch.nodes] = branch
 
+        # Averigua se há algum valor negativo e acrescenta na lista 'self.negs'
         for param in branch.params.values():
             if param < 0: self.negs.append(branch.nodes)
 
@@ -290,12 +293,15 @@ def get_ATP(arquivo, dbar, equiv, base):
     Esses nomes são acrescentados nas instâncias dos nós.
     Em seguida, é feito uma verificação para ver se não há nomes de nó repeti-
     dos, que é uma desgraça para o ATP.
-    Por fim, cria-se uma sequência de nomes de nó com geradores para o ATP."""
+    Por fim, cria-se uma sequência de nomes de nó com geradores para o ATP.
+    Também é feita uma verificacao se ha algum nome de noh para o ATP faltante.
+    """
 
     wb = load_workbook(str(arquivo))
 
     ws = wb.worksheets[0]
 
+    # Verifica qual escolha de base de nomes o usuário optou
     if base.lower() == 'epe': offset = 1
     if base.lower() == 'ons': offset = 3
 
@@ -306,8 +312,13 @@ def get_ATP(arquivo, dbar, equiv, base):
         nome_barra = linha[offset + 1].value
         nome_ATP = linha[0].value
 
+        # Verificação se tem alguma célula vazia, o que invalida toda a linha
+        if num_barra == None or nome_barra == None or nome_ATP == None: continue
+
         tabela_Nomes[num_barra] = [nome_barra, nome_ATP]
 
+
+    # Verificacao de falta de nome de no para o ATP
     missing = []
 
     for barra in equiv.get_equiNodes()[1:]:
@@ -356,9 +367,10 @@ def make_Equi(arqPaths, equiv, dbar):
 
         # Se for um 'Gerador':
         if branch.tipo == 'G':
-            nodeTo = [str(dbar.get_nomeGerAtp(branch.nodes[0]))+'A',
-                    str(dbar.get_nomeGerAtp(branch.nodes[0]))+'B',
-                    str(dbar.get_nomeGerAtp(branch.nodes[0]))+'C']
+            gerName = dbar.get_nomeGerAtp(branch.nodes[0])
+            nodeTo = [str(gerName)+'A',
+                    str(gerName)+'B',
+                    str(gerName)+'C']
 
         # Se for um 'Shunt':
         elif branch.nodes[1] == 0:
@@ -562,6 +574,12 @@ def make_Rela(relaBuffer, arqPaths):
             rela.write(str(neg[0]) + ' - ' + str(neg[1]) + '\n')
         rela.write('\n')
 
+    if 'Rep' in relaBuffer[0]:
+        rela.write(textos.texto['Repetido'])
+        for barra in relaBuffer[1]:
+            rela.write(barra)
+        rela.write('\n\n')
+
     if 'rncc' in relaBuffer[0]:
         rela.write(textos.texto['relaRncc'].format(arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].resolve().stem) + '-rncc.rel')))
 
@@ -688,6 +706,8 @@ def main():
     dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
     equiv = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
 
+    
+    # Verifica se há alguma valor negativo de parametro, e alerta o usuario
     if equiv.negs:
         relaWatch.relaBuffer = ('Negs', equiv.negs) 
 
@@ -704,16 +724,21 @@ def main():
 
     else:
         try:
+            # missing guarda os nomes de nohs do ATP faltantes.
+            # repet guarda o nome de nohs repetidos.
             missing = get_ATP(arqPaths['Atp'], dbar, equiv, argumnt.args.base)
+            repet = dbar.get_repATP()
 
-        except(FileNotFoundError): 
+        except(FileNotFoundError):
             relaWatch.relaBuffer = ('atp', 0)
             relaWatch.runTime = 0
 
+        if repet:
+            relaWatch.relaBuffer = ('Rep', repet)
 
         if missing:
-            print(missing)
             relaWatch.relaBuffer = ('miss', missing)
+            relaWatch.runTime = 0
 
 
     if 's' in comando:
@@ -726,8 +751,6 @@ def main():
 
     # FIM DA EXECUÇÃO
     relaWatch.relaBuffer = ('fim',)
-
-    # print(textos.texto['fim'].format(arqPaths['Rela']))
 
 
 

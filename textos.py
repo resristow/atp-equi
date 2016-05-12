@@ -36,7 +36,7 @@ O relatório foi gravado em {}.\n\n""",
 "O arquivo {} foi lido com sucesso!\n\n",
 
     'relaErroArq':
-"""You loose, fella! O arquivo {} não foi encontrado.""",
+"""You lose, fella! O arquivo {} não foi encontrado.""",
 
     'relaSrc':
 """O usuário optou por emitir um arquivo .lib com o cartão ATP /SOURCE com
@@ -48,7 +48,7 @@ O arquivo {} foi gravado com sucesso!\n\n""",
 equivalentes conectados, sendo que {!s} são fontes. A lista completa de barras é apresentada abaixo.\n\n""",
 
     'relaErroMiss':
-"""You loose, fella! Alguns nomes de nós do ATP não foram encontrados na plani-
+"""You lose, fella! Alguns nomes de nós do ATP não foram encontrados na plani-
 lha. Favor complementar a lista. Seguem abaixo as barras faltantes:\n""",
 
     'fim':
@@ -57,5 +57,8 @@ lha. Favor complementar a lista. Seguem abaixo as barras faltantes:\n""",
     'Negs':
 """
 Há valores negativos no .ANA. Segue a lista de circuitos equivalentes com
-valores negativos:\n"""
+valores negativos:\n""",
+
+    'Repetido':
+'Foram encontrados na planilha nomes de ATP repetidos. A lista segue abaixo:\n'
 }    
