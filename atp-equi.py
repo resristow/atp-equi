@@ -303,7 +303,7 @@ def get_ATP(arquivo, dbar, equiv, base):
 
     # Verifica qual escolha de base de nomes o usuário optou
     if base.lower() == 'epe': offset = 1
-    if base.lower() == 'ons': offset = 3
+    if base.lower() == 'ons': offset = 2
 
     tabela_Nomes = {}
 
@@ -311,8 +311,8 @@ def get_ATP(arquivo, dbar, equiv, base):
         try:
             num_barra = int(linha[offset].value)
         except(TypeError):
-            num_barra = 0
-        nome_barra = linha[offset + 1].value
+            num_barra = None
+        nome_barra = linha[3].value
         nome_ATP = linha[0].value
 
         # Verificação se tem alguma célula vazia, o que invalida toda a linha
