@@ -308,7 +308,10 @@ def get_ATP(arquivo, dbar, equiv, base):
     tabela_Nomes = {}
 
     for linha in ws.rows[1:]:
-        num_barra = int(linha[offset].value)
+        try:
+            num_barra = int(linha[offset].value)
+        except(TypeError):
+            num_barra = 0
         nome_barra = linha[offset + 1].value
         nome_ATP = linha[0].value
 
@@ -600,7 +603,7 @@ def make_Rela(relaBuffer, arqPaths):
     if 'miss' in relaBuffer[0]:
         rela.write(textos.texto['relaErroMiss'])
         for barra in relaBuffer[1]:
-            rela.write(str(barra[0]) + ' - ' + barra[1])
+            rela.write(str(barra[0]) + ' - ' + barra[1] + '\n')
 
     if 'src' in relaBuffer[0]:
         rela.write(textos.texto['relaSrc'].format(arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-source.lib')))
