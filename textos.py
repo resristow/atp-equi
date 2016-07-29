@@ -48,17 +48,25 @@ O arquivo {} foi gravado com sucesso!\n\n""",
 equivalentes conectados, sendo que {!s} são fontes. A lista completa de barras é apresentada abaixo.\n\n""",
 
     'relaErroMiss':
-"""You lose, fella! Alguns nomes de nós do ATP não foram encontrados na plani-
-lha. Favor complementar a lista. Seguem abaixo as barras faltantes:\n""",
+"""Alguns nomes de nós da rede {} do ATP não foram encontrados na planilha. Eles foram no-
+meados automaticamente. Seguem abaixo as barras faltantes:\n""",
 
     'fim':
 "O processamento chegou ao fim! Informações em {}.",
 
     'Negs':
 """
-Há valores negativos no .ANA. Segue a lista de circuitos equivalentes com
-valores negativos:\n""",
+Há valores negativos no .ANA. Segue a lista de circuitos com valores negativos:
+""",
 
     'Repetido':
-'Foram encontrados na planilha nomes de ATP repetidos. A lista segue abaixo:\n'
+'Foram encontrados na planilha nomes de ATP repetidos. A lista segue abaixo:\n',
+
+    'Inner':
+"""O usuário solicitou um cartão /BRANCH com os dados da rede interna num arqui-
+vo .lib.
+O arquivo {} foi gravado com sucesso!
+
+"""
+
 }    

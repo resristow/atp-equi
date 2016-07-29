@@ -9,12 +9,11 @@ import sys
 import datetime
 from openpyxl import load_workbook
 
-
 # x.y.z
 # x = major change
 # y = Minor change
 # z = bugfix
-VERSION = "1.0.2"
+VERSION = "1.1.0"
 
 
 class args_Handler():
@@ -24,9 +23,10 @@ class args_Handler():
         parser = argparse.ArgumentParser(description='Cria um equivalente para o ATP', 
                         prog='ATP-EQUI')
         parser.add_argument('-c', default='es', metavar='Comando', nargs='?', 
-                        help='Especifica que operacao deve ser feita [esRb] -Imprime\
-                        [e]quivalente.lib, imprime [s]ource.lib, imprime [R]NCC.rel,\
-                        lista [b]arras com equivalentes e sai.')
+                        help="""Especifica que operacao deve ser feita [esbiR] -Imprime
+                        [e]quivalente.lib, imprime [s]ource.lib, imprime [R]NCC.rel,
+                        lista [b]arras com equivalentes e sai, imprime .lib da
+                        rede [i]nterna.""")
         parser.add_argument('-P', default='', metavar='Path', nargs='*', 
                         help="""Muda o caminho da Pasta de Trabalho. O padrão é 
                         mesma pasta do arquivo de execução do programa.""")
@@ -140,7 +140,7 @@ class node:
 class Branches:
     def __init__(self):
         self.branches = {}
-        self.negs = []
+        self.negs = {'equiv':[], 'interna':[]}
 
     def addBranch(self, branch, dbar):
         # Acrescenta no dicionário 'self.branches' o novo circuito (ou ramo)
@@ -148,7 +148,11 @@ class Branches:
 
         # Averigua se há algum valor negativo e acrescenta na lista 'self.negs'
         for param in branch.params.values():
-            if param < 0: self.negs.append(branch.nodes)
+            if param < 0:
+                if not branch.interno:
+                    self.negs['equiv'].append(branch.nodes)
+                else:
+                    self.negs['interna'].append(branch.nodes)
 
         # Calcula os valores em Ohm
         for n in branch.paramsOhm:
@@ -157,19 +161,33 @@ class Branches:
             else: branch.paramsOhm[n] = specialFloat(branch.params[n] * 
                         dbar.get_vBase(branch.nodes[0])**2/10000)
 
-    def get_equiNodes(self):
+    def get_equiNodes(self, inner = 0):
         barrasEquiv = set()
 
         for n in self.branches.values():
-            for no in range(2):
-                barrasEquiv.add(n.nodes[no])
+            for node in range(2):
+                if inner:
+                    if n.interno:
+                        barrasEquiv.add(n.nodes[node])
+                else:
+                    if not n.interno:
+                        barrasEquiv.add(n.nodes[node])
+
         return sorted(barrasEquiv)
 
     def get_tipo(self, node):
         return self.branches[node].tipo
 
-    def get_all(self): return self.branches.values()
-
+    def get_all(self, inner = 0):
+        saida = []
+        for n in self.branches.values():
+            if inner:
+                if n.interno:
+                    saida.append(n)
+            else:
+                if not n.interno:
+                    saida.append(n)
+        return saida
 
 class branch:
     """
@@ -183,12 +201,13 @@ class branch:
     """
 
 
-    def __init__(self, linha):
+    def __init__(self, linha, inner = 0):
         self.nodes = (0,0)
         self.tipo = ''
         self.params = {'r1':0, 'x1':0, 'r0':0, 'x0':0}
         self.paramsOhm = {'r1':0, 'x1':0, 'r0':0, 'x0':0}
         self.addLinha(linha=linha)
+        self.interno = inner
 
     def addLinha(self, linha):
         "Identifica e separa os valores da linha de equivalente do DLIN do .ANA"
@@ -269,7 +288,8 @@ def get_DBAR(arquivo, colecao):
             flag = flag | 2  
         if flag == 3:
             dbar.addNode(node(linha))
-        if 'DBAR' in linha[0:4]: flag = flag | 1
+        if 'dbar' in linha[0:4].lower():
+            flag = flag | 1
 
     return dbar
 
@@ -279,15 +299,21 @@ def get_EQUIV(arquivo, colecao, dbar):
 
     flag = 0
     equiv = colecao
+
     for linha in arquivo:
-        if '(' not in linha:
-            if '998' in linha[65:75]:
-                equiv.addBranch(branch(linha), dbar)
-                flag = 1
-        if (flag == 1) and ('99999' in linha[0:6]): break
+        if flag:
+            if '99999' in linha[0:6]:
+                break
+            if '(' not in linha[0]:
+                if '998' in linha[65:75]:
+                    equiv.addBranch(branch(linha), dbar)
+                else:
+                    equiv.addBranch(branch(linha, inner = 1), dbar)
+        if ('dlin' in linha[0:4].lower()) or ('dcir' in linha[0:4].lower()):
+            flag = flag | 1
     return equiv
 
-def get_ATP(arquivo, dbar, equiv, base):
+def getAtpNames(arquivo, dbar, dlin, base):
     """Faz a leitura do arquivo de texto com os nomes das barras de fronteira 
     para o ATP.
     Esses nomes são acrescentados nas instâncias dos nós.
@@ -321,38 +347,68 @@ def get_ATP(arquivo, dbar, equiv, base):
         tabela_Nomes[num_barra] = [nome_barra, nome_ATP]
 
 
-    # Verificacao de falta de nome de no para o ATP
-    missing = []
+    # Verificacao de falta de nome de no para o ATP (somente para circuitos equivalentes)
+    autoEquiv = []
+    autoIntern = []
+    temp = 1
 
-    for barra in equiv.get_equiNodes()[1:]:
+    for barra in dlin.get_equiNodes(inner = 0)[1:]:
         try:
             dbar.alter(numAna = barra, dado = tabela_Nomes[barra][1], attr = 'nomeAtp')
-        except(KeyError): missing.append((barra, dbar.get_nomeAna(barra)))
+        except(KeyError):
+            autoName = str(temp) + 'Y' * (5 - len(str(temp)))
+            dbar.alter(numAna = barra, dado = autoName, attr = 'nomeAtp')
+            temp += 1
+            autoEquiv.append((barra, dbar.get_nomeAna(barra), autoName))
         try: 
-            if equiv.get_tipo((barra,0)) == 'G':
-                dbar.alter(numAna = barra, dado = 'F' + tabela_Nomes[barra][1][:-1], attr = 'nomeGerAtp')
+            if dlin.get_tipo((barra,0)) == 'G':
+                dbar.alter(numAna = barra, dado = 'F' + dbar.get_nomeAtp(barra)[:-1], attr = 'nomeGerAtp')
         except: pass
+
+    # Verificacao de falta de nome de no para o ATP (rede interna)
+
+
+    for barra in dlin.get_equiNodes(inner = 1)[1:]:
+        try:
+            dbar.alter(numAna = barra, dado = tabela_Nomes[barra][1], attr = 'nomeAtp')
+        except(KeyError):
+            autoName = str(temp) + 'Y' * (5 - len(str(temp)))
+            dbar.alter(numAna = barra, dado = autoName, attr = 'nomeAtp')
+            temp += 1
+            autoIntern.append((barra, dbar.get_nomeAna(barra), autoName))
+        try: 
+            if dlin.get_tipo((barra,0)) == 'G':
+                dbar.alter(numAna = barra, dado = 'F' + tabela_Nomes[barra][1][:-1], attr = 'nomeGerAtp')
+        except: pass    
 
 
     dbar.check_repGerATP()
 
     dbar.check_repATP()
 
-    return missing
+    return autoEquiv, autoIntern
 
 
-def make_Equi(arqPaths, equiv, dbar):
+def makeLib(arqPaths, dlin, dbar, inner = 0):
     """Funçaõ para compor o arquivo-cartão /BRANCH com extensão .lib, do ATP,
     que irá conter a rede equivalentada pelo Anafas."""
 
-    arquivo = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-equivalentes.lib')
+    if not inner:
+        arquivo = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-equivalentes.lib')
+    else:
+        arquivo = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-interna.lib')
     arquivo = arquivo.open('w')
     numTrf = 1
     
     arquivo.write('/BRANCH\n')
 
-    # Loop 'for' sobre cada circuito equivalente
-    for branch in equiv.get_all():
+    if inner:
+        branches = dlin.get_all(inner = 1)
+    else:
+        branches = dlin.get_all(inner = 0)
+
+    # Loop 'for' sobre cada circuito do conjunto DLIN
+    for branch in branches:
         # Escreve o delimitador superior, com vários '=' e, embaixo, o nome das
         #barras DE e PARA
         arquivo.write('C ' + 77*'=' + '\n' + 'C =====' + 
@@ -428,7 +484,7 @@ def make_Equi(arqPaths, equiv, dbar):
 
             numTrf += 1
 
-def make_Source(arqPaths, dbar):
+def makeSource(arqPaths, dbar):
     """Escreve um arquivo-cartão /SOURCE no formato .lib com as fontes do siste-
     equivalente."""
     arquivo = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-source.lib')
@@ -573,7 +629,11 @@ def make_Rela(relaBuffer, arqPaths):
 
     if 'Negs' in relaBuffer[0]:
         rela.write(textos.texto['Negs'])
-        for neg in relaBuffer[1]:
+        rela.write('===EQUIVALENTES===\n')
+        for neg in relaBuffer[1]['equiv']:
+            rela.write(str(neg[0]) + ' - ' + str(neg[1]) + '\n')
+        rela.write('\n===REDE INTERNA===\n')
+        for neg in relaBuffer[1]['interna']:
             rela.write(str(neg[0]) + ' - ' + str(neg[1]) + '\n')
         rela.write('\n')
 
@@ -601,12 +661,19 @@ def make_Rela(relaBuffer, arqPaths):
         else: rela.write(textos.texto['relaArq'].format(arqPaths['Atp'].name))
 
     if 'miss' in relaBuffer[0]:
-        rela.write(textos.texto['relaErroMiss'])
+        if relaBuffer[2] == 'equi':
+            rela.write(textos.texto['relaErroMiss'].format('Equivalente'))
+        else:
+            rela.write(textos.texto['relaErroMiss'].format('Interna'))
         for barra in relaBuffer[1]:
-            rela.write(str(barra[0]) + ' - ' + barra[1] + '\n')
+            rela.write(str(barra[0]) + ' - ' + barra[1] +  ' - ' + barra[2] + '\n')
+        rela.write('\n')
 
     if 'src' in relaBuffer[0]:
         rela.write(textos.texto['relaSrc'].format(arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-source.lib')))
+
+    if 'inner' in relaBuffer[0]:
+        rela.write(textos.texto['Inner'].format(relaBuffer[1]))
 
     if 'equi' in relaBuffer[0]:
         fontes = set()
@@ -707,29 +774,26 @@ def main():
     # Obtém a lista de barras de fronteira e os circuitos equivalentes 
     #conectados a elas do arquivo .ANA
     dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
-    equiv = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
+    dlin = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
 
     
-    # Verifica se há alguma valor negativo de parametro, e alerta o usuario
-    if equiv.negs:
-        relaWatch.relaBuffer = ('Negs', equiv.negs) 
 
 
     # A seguir é feita a seleção do modo de operação do programa, de acordo com
     #os argumentos que o usuário entrou na linha de comando.
 
     if 'R' in comando:
-        make_Rncc(arqPaths, equiv)
+        make_Rncc(arqPaths, dlin)
         relaWatch.relaBuffer = ('rncc',)
 
     if 'b' in comando:
-        relaWatch.relaBuffer = ('barras', dbar, equiv)  
+        relaWatch.relaBuffer = ('barras', dbar, dlin)  
 
     else:
         try:
             # missing guarda os nomes de nohs do ATP faltantes.
             # repet guarda o nome de nohs repetidos.
-            missing = get_ATP(arqPaths['Atp'], dbar, equiv, argumnt.args.base)
+            autoEquiv, autoIntern = getAtpNames(arqPaths['Atp'], dbar, dlin, argumnt.args.base)
             repet = dbar.get_repATP()
 
         except(FileNotFoundError):
@@ -739,22 +803,29 @@ def main():
         if repet:
             relaWatch.relaBuffer = ('Rep', repet)
 
-        if missing:
-            relaWatch.relaBuffer = ('miss', missing)
-            relaWatch.runTime = 0
+        if autoEquiv:
+            relaWatch.relaBuffer = ('miss', autoEquiv, 'equi')
 
 
     if 's' in comando:
-        make_Source(arqPaths, dbar)
+        makeSource(arqPaths, dbar)
         relaWatch.relaBuffer = ('src',)
 
+    if 'i' in comando:
+        makeLib(arqPaths, dlin, dbar, inner = 1)
+        relaWatch.relaBuffer = ('inner', arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-interna.lib'))
+        if autoIntern:
+            relaWatch.relaBuffer = ('miss', autoIntern, 'inner')
+
     if 'e' in comando:
-        make_Equi(arqPaths, equiv, dbar)
-        relaWatch.relaBuffer = ('equi', dbar, equiv)
+        makeLib(arqPaths, dlin, dbar, inner = 0)
+        relaWatch.relaBuffer = ('equi', dbar, dlin)
+
+    # Verifica se há alguma valor negativo de parametro, e alerta o usuario
+    if dlin.negs:
+        relaWatch.relaBuffer = ('Negs', dlin.negs) 
 
     # FIM DA EXECUÇÃO
     relaWatch.relaBuffer = ('fim',)
-
-
 
 main()
