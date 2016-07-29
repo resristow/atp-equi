@@ -45,7 +45,7 @@ class args_Handler():
                     arqPaths['cwd'] = Path(arg_P[1])
 
                 if 'nomes-atp' in arg_P[0]:
-                    arqPaths['Atp'] = arqPaths['cwd'] / Path(arg_P[1])
+                    arqPaths['Nomes'] = arqPaths['cwd'] / Path(arg_P[1])
 
                 if 'ana' in arg_P[0]:
                     arqPaths['Ana'] = arqPaths['cwd'] / Path(arg_P[1])
@@ -126,6 +126,7 @@ class node:
         self.nomeAna = ''
         self.nomeAtp = ''
         self.nomeGerAtp = ''
+        self.aux = 0
         self.addLinha(linha=linha)
 
     def addLinha(self, linha):
@@ -135,6 +136,10 @@ class node:
             try: self.vBase = float(linha[31:35])
             except(ValueError): pass
             self.nomeAna = linha[9:21].strip()
+            try:
+                self.aux = int(linha[7])
+            except(ValueError):
+                self.aux = 0
 
 
 class Branches:
@@ -502,83 +507,85 @@ def makeSource(arqPaths, dbar):
                 barra.vBase*sqrt(2/3)*1000, 60, -240) + 20*' ' + 
                 '{:10d}{:10d}'.format(-1,100) + '\n')
 
-def make_Rncc(arqPaths, equiv):
+def compCurto(arqPaths, dbar):
     """Roda o Anafas para obter o Relatório de Níveis de Curto-Circuito do sis-
     tema equivalentado. Só estão ligadas as barras de fronteira.
     Cria-se arquivos-fantoche dummy* para poder rodar o Anafas em modo
     Batch.
     """
-    dummyAna = arqPaths['cwd'] / Path('dummy-' + arqPaths['Ana'].name)
-    dummyInp = arqPaths['cwd'] / Path('dummy.inp')
-    dummyBar = arqPaths['cwd'] / Path('dummy.bar')
-    dummyRel = arqPaths['cwd'] / Path(str(arqPaths['Ana'].resolve().stem) + '-rncc.rel')
-    dummyBat = arqPaths['cwd'] / Path('dummy.bat')
+    
+    valsCurto = {}
 
-    arqAna = arqPaths['Ana'].open('r')
+    rncc = arqPaths['Rncc'].open('r')
+    flag = 0
 
-    # Obtém as barras que possuem equivalentes (chamadas de barras de fronteira)
-    equiNodes = equiv.get_equiNodes()[1:]
+    for linha in rncc:
+        if flag:
+            if 'X-----X------------X' in linha:
+                break
+
+            numAna = int(linha[2:7])
+            nome = linha[8:20]
+            vBase = linha[21:26]
+            valsCurto[numAna] = {'tri':[float(linha[28:37]), float(linha[46:53])]}
+            valsCurto[numAna]['mono'] = [float(linha[54:63]), float(linha[71:79])]
 
 
-    #Escreve o arquivo .ANA somente com as barras de fronteira
+        if 'X-----X------------X' in linha:
+            flag = 1
+            rncc.readline()
+            
 
-    with dummyAna.open('w') as dumana:
-        flag = 0
-        for linha in arqAna.readlines():
-            if '998' in linha[69:72]: flag = 0
-            if 'dmut' in linha.lower(): flag = 2
-            if 'dare' in linha.lower(): flag = 0
-            if 'dbar' in linha.lower(): flag = 3
+    atpWork = Path('d:\\work\\atpwork\\atppy')
+    baseAtp = arqPaths['Atp'].open('r')
 
-            if flag == 1: dumana.write('('+linha)
-            elif flag == 2: pass
-            elif flag == 3:
-                try:
-                    if (int(linha[:5]) in equiNodes) or \
-                    (int(linha[:5]) == 99999): dumana.write(linha)
-                    else: dumana.write('('+linha)
-                except: dumana.write(linha)
-            else: dumana.write(linha)
+    flag = 0
 
-            if ('dcir' in linha.lower()) or ('dlin' in linha.lower()): flag  = 1
+    for barra in dbar.get_all():
 
-    # Escreve o arquivo .BAR com as barras para se rodar o RNCC
+        if barra.numAna == 0:
+            continue
 
-    with dummyBar.open('w') as dumbar:
-        dumbar.write('ANAFAS.BAR\nbla bla\n')
-        for barra in equiNodes:
-            dumbar.write(str(barra)+'\n')
+        tempAtp = (atpWork / Path(arqPaths['Atp'].stem + '_' + str(barra.numAna) + '.atp')).open('w')
 
-    # Escreve o arquivo batch .INP
+        for linha in baseAtp:
 
-    with dummyInp.open('w') as duminp:
-        duminp.write('dcte\nruni ka\n9999\n\n')
-        duminp.write('arqv dado\n')
-        duminp.write(str(dummyAna.resolve()) + '\n\n')
-        duminp.write('arqv cbal\n')
-        duminp.write(str(dummyBar.resolve()) + '\n\n')
-        duminp.write('arqv said\n')
-        duminp.write(str(dummyRel.absolute()) + '\n\n')
-        duminp.write('rela conj rncc\n\nFIM')
+            if flag == 1:
+                tempAtp.write(linha[:8] + 6 * ' ' + '-1' + linha[16:])
+                flag = 0
+                continue
 
-    # Escreve o arquivo .BAT para poder executar o Anafas em modo batch
+            if flag == 2:
+                tempAtp.write('C ===RESISTÊNCIA DE CURTO-CIRCUITO===\n')
+                tempAtp.write('  ' + barra.nomeAtp + 'A' + 'CURTOA' + 12 * ' ' + '1e-5\n')
+                tempAtp.write('  ' + barra.nomeAtp + 'B' + 'CURTOB' + 12 * ' ' + '1e-5\n')
+                tempAtp.write('  ' + barra.nomeAtp + 'C' + 'CURTOC' + 12 * ' ' + '1e-5\n')
+                flag = 0
 
-    with dummyBat.open('w') as dumbat:
-        dumbat.write('cd /d c:\\cepel\\anafas 6.5\n\nSTART anafas.exe -WIN ' + 
-            '"' + str(dummyInp.resolve()) + '"')
+            if flag == 3:
+                tempAtp.write('C ===LIGAÇÃO COM O CURTO===\n')
+                tempAtp.write('  CURTOA' + 46 * ' ' + 'MEASURING' + 16 * ' ' + '1\n')
+                tempAtp.write('  CURTOB' + 46 * ' ' + 'MEASURING' + 16 * ' ' + '1\n')
+                tempAtp.write('  CURTOC' + 46 * ' ' + 'MEASURING' + 16 * ' ' + '1\n')
+                flag = 0
 
-    # Roda o arquivo .bat    
+            if 'C  dT  >< Tmax >< Xopt >< Copt ><Epsiln>' in linha:
+                flag = 1
 
-    shell = win32com.client.Dispatch("WScript.Shell")
-    shell.Run(str(dummyBat))
-    while not shell.AppActivate("Anafas"): pass
-    win32api.Sleep(500)
-    shell.SendKeys("s")
+            if '/BRANCH' in linha:
+                flag = 2
 
-    # Elimina todos os arquivos temporários que foram usados para esse processo
+            if '/SWITCH' in linha:
+                flag = 3
+                
 
-    subprocess.call('rm {}/dum* {}/DUM*'.format(str(arqPaths['cwd']),
-        str(arqPaths['cwd'])))
+            tempAtp.write(linha)
+            
+        break
+
+
+
+
 
 
 def make_Rela(relaBuffer, arqPaths):
@@ -657,8 +664,8 @@ def make_Rela(relaBuffer, arqPaths):
 
     if 'atp' in relaBuffer[0]:
         if not relaBuffer[1]:
-            rela.write(textos.texto['relaErroArq'].format(arqPaths['Atp'], Path.cwd()/arqPaths['Atp']))
-        else: rela.write(textos.texto['relaArq'].format(arqPaths['Atp'].name))
+            rela.write(textos.texto['relaErroArq'].format(arqPaths['Nomes'], Path.cwd()/arqPaths['Nomes']))
+        else: rela.write(textos.texto['relaArq'].format(arqPaths['Nomes'].name))
 
     if 'miss' in relaBuffer[0]:
         if relaBuffer[2] == 'equi':
@@ -733,8 +740,10 @@ def main():
     #entrada e saída
 
     arqPaths = {'Ana' : '',
-                'Atp' : '',
-                'cwd' : ''}
+                'Nomes' : '',
+                'cwd' : '',
+                'Rncc' : '',
+                'Atp' : ''}
 
     #Verifica e busca os caminhos de arquivo fornecidos se o usuário assim optou
     #na linha de comando com o argumento -P
@@ -742,9 +751,17 @@ def main():
 
     # Inclui os caminhos-padrão na lista, caso o usuário não tenha mudado. E
     #muda o diretório de trabalho para o que o usuário optou.
-    if not arqPaths['cwd']: arqPaths['cwd'] = Path.cwd()
-    if not arqPaths['Ana']: arqPaths['Ana'] = arqPaths['cwd'] / Path('equi.ana')
-    if not arqPaths['Atp']: arqPaths['Atp'] = arqPaths['cwd'] / Path('nomesatp.xlsx')
+    if not arqPaths['cwd']:
+        arqPaths['cwd'] = Path.cwd()
+    if not arqPaths['Ana']:
+        arqPaths['Ana'] = arqPaths['cwd'] / Path('equi.ana')
+    if not arqPaths['Nomes']:
+        arqPaths['Nomes'] = arqPaths['cwd'] / Path('nomesatp.xlsx')
+    if not arqPaths['Rncc']:
+        arqPaths['Rncc'] = arqPaths['cwd'] / Path('RNCC.rel')
+    if not arqPaths['Atp']:
+        arqPaths['Atp'] = arqPaths['cwd'] / Path('curto.atp')
+
 
     #Grava o tipo de operação requisitada pelo usuário com o comando -c
     comando = argumnt.args.c
@@ -774,6 +791,7 @@ def main():
     # Obtém a lista de barras de fronteira e os circuitos equivalentes 
     #conectados a elas do arquivo .ANA
     dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
+
     dlin = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
 
     
@@ -782,9 +800,6 @@ def main():
     # A seguir é feita a seleção do modo de operação do programa, de acordo com
     #os argumentos que o usuário entrou na linha de comando.
 
-    if 'R' in comando:
-        make_Rncc(arqPaths, dlin)
-        relaWatch.relaBuffer = ('rncc',)
 
     if 'b' in comando:
         relaWatch.relaBuffer = ('barras', dbar, dlin)  
@@ -793,12 +808,17 @@ def main():
         try:
             # missing guarda os nomes de nohs do ATP faltantes.
             # repet guarda o nome de nohs repetidos.
-            autoEquiv, autoIntern = getAtpNames(arqPaths['Atp'], dbar, dlin, argumnt.args.base)
+            autoEquiv, autoIntern = getAtpNames(arqPaths['Nomes'], dbar, dlin, argumnt.args.base)
             repet = dbar.get_repATP()
 
         except(FileNotFoundError):
             relaWatch.relaBuffer = ('atp', 0)
             relaWatch.runTime = 0
+
+        if 'R' in comando:
+            compCurto(arqPaths, dbar)
+            sys.exit()
+            relaWatch.relaBuffer = ('rncc',)
 
         if repet:
             relaWatch.relaBuffer = ('Rep', repet)
