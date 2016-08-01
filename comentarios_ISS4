@@ -1,2 +1,0 @@
-- Se o usuário quiser automatizar o curto-circuito, ele precisa colocar o nome dos nós da rede interna no arquivo .xlsx, caso
-contrario o programa não saberá qual nome colocar nos .atp que ele criar.

@@ -90,6 +90,7 @@ class Nodes:
             if attr == 'Vbase': self.nodes[numAna].Vbase = dado
             if attr == 'nomeAtp': self.nodes[numAna].nomeAtp = dado
             if attr == 'nomeGerAtp': self.nodes[numAna].nomeGerAtp = dado
+            if attr == 'AutoNamed': self.nodes[numAna].AutoNamed = dado
 
     def get_all(self):
         return self.nodes.values()
@@ -127,6 +128,7 @@ class node:
         self.nomeAtp = ''
         self.nomeGerAtp = ''
         self.aux = 0
+        self.AutoNamed = 0
         self.addLinha(linha=linha)
 
     def addLinha(self, linha):
@@ -365,6 +367,7 @@ def getAtpNames(arquivo, dbar, dlin, base):
             dbar.alter(numAna = barra, dado = autoName, attr = 'nomeAtp')
             temp += 1
             autoEquiv.append((barra, dbar.get_nomeAna(barra), autoName))
+            dbar.alter(numAna = barra, dado = 1, attr = 'AutoNamed')
         try: 
             if dlin.get_tipo((barra,0)) == 'G':
                 dbar.alter(numAna = barra, dado = 'F' + dbar.get_nomeAtp(barra)[:-1], attr = 'nomeGerAtp')
@@ -381,6 +384,7 @@ def getAtpNames(arquivo, dbar, dlin, base):
             dbar.alter(numAna = barra, dado = autoName, attr = 'nomeAtp')
             temp += 1
             autoIntern.append((barra, dbar.get_nomeAna(barra), autoName))
+            dbar.alter(numAna = barra, dado = 1, attr = 'AutoNamed')
         try: 
             if dlin.get_tipo((barra,0)) == 'G':
                 dbar.alter(numAna = barra, dado = 'F' + tabela_Nomes[barra][1][:-1], attr = 'nomeGerAtp')
@@ -508,10 +512,7 @@ def makeSource(arqPaths, dbar):
                 '{:10d}{:10d}'.format(-1,100) + '\n')
 
 def compCurto(arqPaths, dbar):
-    """Roda o Anafas para obter o Relatório de Níveis de Curto-Circuito do sis-
-    tema equivalentado. Só estão ligadas as barras de fronteira.
-    Cria-se arquivos-fantoche dummy* para poder rodar o Anafas em modo
-    Batch.
+    """Descrição aqui
     """
     
     valsCurto = {}
@@ -527,61 +528,154 @@ def compCurto(arqPaths, dbar):
             numAna = int(linha[2:7])
             nome = linha[8:20]
             vBase = linha[21:26]
-            valsCurto[numAna] = {'tri':[float(linha[28:37]), float(linha[46:53])]}
-            valsCurto[numAna]['mono'] = [float(linha[54:63]), float(linha[71:79])]
+            valsCurto[numAna] = {'3F':{'ANAFAS':[float(linha[28:37]), float(linha[46:53])]}}
+            valsCurto[numAna]['1F'] = {'ANAFAS':[float(linha[54:63]), float(linha[71:79])]}
 
 
         if 'X-----X------------X' in linha:
             flag = 1
             rncc.readline()
+
+    rncc.close()
             
 
-    atpWork = Path('d:\\work\\atpwork\\atppy')
-    baseAtp = arqPaths['Atp'].open('r')
+    atpWork = Path('d:\\Work\\ATPWork\\atppy')
+    batchPath = atpWork / Path('rodaTodos.bat')
+    tempBatch = batchPath.open('w')
+
+    tempBatch.write('set GNUDIR=c:\\atp\\atpmingw\\\n\n')
+    tempBatch.write('cd /d ' + str(batchPath.parent) + '\n\n')
+
+    batchConst = ['c:\\atp\\atpmingw\\tpbig.exe disk ', ' s -r\n']
+
 
     flag = 0
 
     for barra in dbar.get_all():
 
-        if barra.numAna == 0:
+        if (barra.numAna == 0) or barra.AutoNamed:
             continue
 
-        tempAtp = (atpWork / Path(arqPaths['Atp'].stem + '_' + str(barra.numAna) + '.atp')).open('w')
+        for tipo in ['3F', '1F']:
 
-        for linha in baseAtp:
+            baseAtp = arqPaths['Atp'].open('r')
 
-            if flag == 1:
-                tempAtp.write(linha[:8] + 6 * ' ' + '-1' + linha[16:])
-                flag = 0
-                continue
+            tempAtp = atpWork / Path(arqPaths['Atp'].stem + tipo + '_' + str(barra.numAna) + '.atp')
 
-            if flag == 2:
-                tempAtp.write('C ===RESISTÊNCIA DE CURTO-CIRCUITO===\n')
-                tempAtp.write('  ' + barra.nomeAtp + 'A' + 'CURTOA' + 12 * ' ' + '1e-5\n')
-                tempAtp.write('  ' + barra.nomeAtp + 'B' + 'CURTOB' + 12 * ' ' + '1e-5\n')
-                tempAtp.write('  ' + barra.nomeAtp + 'C' + 'CURTOC' + 12 * ' ' + '1e-5\n')
-                flag = 0
+            with tempAtp.open('w') as arqAtp:
 
-            if flag == 3:
-                tempAtp.write('C ===LIGAÇÃO COM O CURTO===\n')
-                tempAtp.write('  CURTOA' + 46 * ' ' + 'MEASURING' + 16 * ' ' + '1\n')
-                tempAtp.write('  CURTOB' + 46 * ' ' + 'MEASURING' + 16 * ' ' + '1\n')
-                tempAtp.write('  CURTOC' + 46 * ' ' + 'MEASURING' + 16 * ' ' + '1\n')
-                flag = 0
+                for linha in baseAtp:
 
-            if 'C  dT  >< Tmax >< Xopt >< Copt ><Epsiln>' in linha:
-                flag = 1
+                    if flag == 1:
+                        arqAtp.write(linha[:8] + 6 * ' ' + '-1' + linha[16:])
+                        flag = 0
+                        continue
 
-            if '/BRANCH' in linha:
-                flag = 2
+                    if flag == 2:
+                        arqAtp.write('C ===RESISTÊNCIA DE CURTO-CIRCUITO===\n')
+                        arqAtp.write('  ' +  'CURTOA' + 18 * ' ' + '1e-5\n')
+                        arqAtp.write('  ' +  'CURTOB' + 18 * ' ' + '1e-5\n')
+                        arqAtp.write('  ' +  'CURTOC' + 18 * ' ' + '1e-5\n')
+                        flag = 0
 
-            if '/SWITCH' in linha:
-                flag = 3
-                
+                    if flag == 3:
+                        arqAtp.write('C ===LIGAÇÃO COM O CURTO===\n')
+                        arqAtp.write('C CORRESPONDE A BARRA ' + str(barra.numAna) + '\n')
+                        arqAtp.write('  ' + barra.nomeAtp + 'A' + 'CURTOA' + 7 * ' ' + '-1.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
+                        if tipo == '3F':
+                            arqAtp.write('  ' + barra.nomeAtp + 'B' + 'CURTOB' + 7 * ' ' + '-1.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
+                            arqAtp.write('  ' + barra.nomeAtp + 'C' + 'CURTOC' + 7 * ' ' + '-1.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
 
-            tempAtp.write(linha)
-            
-        break
+                        else:
+                            arqAtp.write('  ' + barra.nomeAtp + 'B' + 'CURTOB' + 7 * ' ' + '10.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
+                            arqAtp.write('  ' + barra.nomeAtp + 'C' + 'CURTOC' + 7 * ' ' + '10.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
+
+                        flag = 0
+
+                    if 'C  dT  >< Tmax >< Xopt >< Copt ><Epsiln>' in linha:
+                        flag = 1
+
+                    if '/BRANCH' in linha:
+                        flag = 2
+
+                    if '/SWITCH' in linha:
+                        flag = 3
+                        
+
+                    arqAtp.write(linha)
+
+            tempBatch.write(batchConst[0] + tempAtp.name + batchConst[1])
+
+    tempBatch.close()
+
+    # Aqui roda os .atps e faz a leitura dos valores de curto-circuito
+
+    # subprocess.run(str(batchPath), shell = True)
+
+    for arquivo in atpWork.glob('*f_*.lis'):
+
+        flag = 0
+
+        with Path(arquivo).open('r') as lisFile:
+
+            for linha in lisFile:
+
+                if 'CORRESPONDE A BARRA' in linha:
+                    barra = int(linha.split('|')[1].split()[4])
+
+                if flag == 1:
+                    vals = linha.split()
+                    if 'CURTOA' in vals[1]:
+                        faseA = [float(vals[4]) / sqrt(2) / 1e3, abs(tan(radians(float(vals[5]))))]
+                    elif vals[2] == 'Open':
+                        valsCurto[barra]['1F']['ATP'] = faseA
+                    else:
+                         faseB = [float(vals[4]) / sqrt(2) / 1e3, abs(tan(radians(float(vals[5]))))]
+                         flag = 2
+
+                if 'Output for steady-state phasor switch currents' in linha:
+                    lisFile.readline()
+                    flag = 1
+
+                if flag == 2:
+                    # if (faseA[0] - faseB[0]) / faseA[0] > 0.02:
+                    #     print('deu merda\n')
+
+                    valsCurto[barra]['3F']['ATP'] = [(faseA[0] + faseB[0] + float(vals[4]) / sqrt(2) / 1e3) / 3,
+                                                    (faseA[1] + faseB[1] + abs(tan(radians(float(vals[5]))))) / 3] 
+
+
+    relaRncc = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].resolve().stem) + '-rncc.rel')
+
+    with relaRncc.open('w') as rela:
+
+        rela.write('IDENTIFICACAO TRIFASICO MONOFASICO\n')
+        rela.write('ANAFAS ATP\n')
+        rela.write('NUM. NOME VBAS MOD(kA) X/R MOD(kA) X/R\n\n')
+
+        for barra in valsCurto:
+
+            if valsCurto[barra]['3F'].get('ATP') != None:
+                rela.write('{!s:>5.5} {:>15.15} {:>6.6} {!s:>5.5}'.format(
+                                                        barra,
+                                                        dbar.get_nomeAna(barra),
+                                                        dbar.get_nomeAtp(barra),
+                                                        dbar.get_vBase(barra))
+                rela.write('')
+                            str(valsCurto[barra]['3F']['ANAFAS'][0]) +
+                            str(valsCurto[barra]['3F']['ANAFAS'][1]) +
+                            str(valsCurto[barra]['3F']['ATP'][0]) +
+                            str(valsCurto[barra]['3F']['ATP'][1]) +
+                            str(valsCurto[barra]['1F']['ANAFAS'][0]) +
+                            str(valsCurto[barra]['1F']['ANAFAS'][1]) +
+                            str(valsCurto[barra]['1F']['ATP'][0]) +
+                            str(valsCurto[barra]['1F']['ATP'][1]) +
+                            '\n')
+                }
+
+
+        
+    return valsCurto
 
 
 
@@ -815,16 +909,15 @@ def main():
             relaWatch.relaBuffer = ('atp', 0)
             relaWatch.runTime = 0
 
-        if 'R' in comando:
-            compCurto(arqPaths, dbar)
-            sys.exit()
-            relaWatch.relaBuffer = ('rncc',)
-
         if repet:
             relaWatch.relaBuffer = ('Rep', repet)
 
         if autoEquiv:
             relaWatch.relaBuffer = ('miss', autoEquiv, 'equi')
+
+        if 'R' in comando:
+            valsCurto = compCurto(arqPaths, dbar)
+            relaWatch.relaBuffer = ('rncc', valsCurto)
 
 
     if 's' in comando:
