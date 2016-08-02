@@ -3,11 +3,10 @@ from pathlib import Path
 import argparse
 from math import *
 import subprocess
-import win32api
-import win32com.client
 import sys
 import datetime
 from openpyxl import load_workbook
+import json
 
 # x.y.z
 # x = major change
@@ -22,40 +21,15 @@ class args_Handler():
     def __init__(self):
         parser = argparse.ArgumentParser(description='Cria um equivalente para o ATP', 
                         prog='ATP-EQUI')
-        parser.add_argument('-c', default='es', metavar='Comando', nargs='?', 
+        parser.add_argument('c', metavar='Comando', nargs='?', 
                         help="""Especifica que operacao deve ser feita [esbiR] -Imprime
                         [e]quivalente.lib, imprime [s]ource.lib, imprime [R]NCC.rel,
                         lista [b]arras com equivalentes e sai, imprime .lib da
                         rede [i]nterna.""")
-        parser.add_argument('-P', default='', metavar='Path', nargs='*', 
-                        help="""Muda o caminho da Pasta de Trabalho. O padrão é 
-                        mesma pasta do arquivo de execução do programa.""")
-        parser.add_argument('-base', default='epe', metavar='Base de Nomes',nargs='?',
-                        help="""Especifica ao programa qual base de dados usar para
-                        obter os nomes dos nós no arquivo. csv""")
+        
         self.args = parser.parse_args()
 
-    def check_Paths(self, arqPaths):
-        """Substitui o caminho da Pasta de Trabalho, se o usuario assim optou
-        com o argumento -P na linha de comando."""
-        if self.args.P != '':
-            for arg_P in self.args.P:
-                arg_P = arg_P.split('=')
-                if 'cwd' in arg_P[0]:
-                    arqPaths['cwd'] = Path(arg_P[1])
-
-                if 'nomes-atp' in arg_P[0]:
-                    arqPaths['Nomes'] = arqPaths['cwd'] / Path(arg_P[1])
-
-                if 'ana' in arg_P[0]:
-                    arqPaths['Ana'] = arqPaths['cwd'] / Path(arg_P[1])
-
-        return arqPaths
-
-
-
-
-
+    
 
 class Nodes:
     """Coleção de barras do equivalente.
@@ -539,14 +513,14 @@ def compCurto(arqPaths, dbar):
     rncc.close()
             
 
-    atpWork = Path('d:\\Work\\ATPWork\\atppy')
+    atpWork = arqPaths['ATPcwd']
     batchPath = atpWork / Path('rodaTodos.bat')
     tempBatch = batchPath.open('w')
 
-    tempBatch.write('set GNUDIR=c:\\atp\\atpmingw\\\n\n')
+    tempBatch.write('set GNUDIR=' + str(arqPaths['GNUDIR']) + '\\\n\n')
     tempBatch.write('cd /d ' + str(batchPath.parent) + '\n\n')
 
-    batchConst = ['c:\\atp\\atpmingw\\tpbig.exe disk ', ' s -r\n']
+    batchConst = [str(arqPaths['tpbigDir'] / arqPaths['tpbig']) + ' disk ', ' s -r\n']
 
 
     flag = 0
@@ -825,9 +799,6 @@ def make_Rela(relaBuffer, arqPaths):
 
 
 
-
-
-
 class relaWatcher():
     """Classe Descritor para monitorar o andamento do relatório, com o uso da
     função Property.
@@ -860,42 +831,52 @@ class GMT1(datetime.tzinfo):
         return datetime.timedelta(0)
 
 
-
-
-def main():
-
-    # Trata dos argumentos de linha de comando
-    argumnt = args_Handler()
-
-    #Definição da estrutura do dicionário com os caminhos para os arquivos de
-    #entrada e saída
+def paramsIniciais(params):
 
     arqPaths = {'Ana' : '',
                 'Nomes' : '',
                 'cwd' : '',
                 'Rncc' : '',
-                'Atp' : ''}
+                'Atp' : '',
+                'ATPcwd' : ''}
 
-    #Verifica e busca os caminhos de arquivo fornecidos se o usuário assim optou
-    #na linha de comando com o argumento -P
-    arqPaths = argumnt.check_Paths(arqPaths)
+    for param in params['usuario']['caminhos']:
+        if params['usuario']['caminhos'][param]:
+            arqPaths[param] = Path(params['usuario']['caminhos'][param])
 
-    # Inclui os caminhos-padrão na lista, caso o usuário não tenha mudado. E
-    #muda o diretório de trabalho para o que o usuário optou.
-    if not arqPaths['cwd']:
-        arqPaths['cwd'] = Path.cwd()
-    if not arqPaths['Ana']:
-        arqPaths['Ana'] = arqPaths['cwd'] / Path('equi.ana')
-    if not arqPaths['Nomes']:
-        arqPaths['Nomes'] = arqPaths['cwd'] / Path('nomesatp.xlsx')
-    if not arqPaths['Rncc']:
-        arqPaths['Rncc'] = arqPaths['cwd'] / Path('RNCC.rel')
-    if not arqPaths['Atp']:
-        arqPaths['Atp'] = arqPaths['cwd'] / Path('curto.atp')
+    for path in arqPaths:
+        if not arqPaths[path]:
+            arqPaths[path] = Path(params['default']['caminhos'][path])
 
+    arqPaths['Ana'] = arqPaths['cwd'] / arqPaths['Ana']
+    arqPaths['Nomes'] = arqPaths['cwd'] / arqPaths['Nomes']
+    arqPaths['Rncc'] = arqPaths['cwd'] / arqPaths['Rncc']
+    arqPaths['Atp'] = arqPaths['ATPcwd'] / arqPaths['Atp']
+
+    if params['usuario']['comando']:
+        comando = params['usuario']['comando']
+    else:
+        comando = params['default']['comando']
+
+    if params['usuario']['base']:
+        base = params['usuario']['base']
+    else:
+        base = params['default']['base']
+
+    return arqPaths, comando, base
+
+
+
+def main():
+
+    arqPaths, comando, base = paramsIniciais(json.load(Path('atp-equi.ini').open('r')))
+
+    # Trata dos argumentos de linha de comando
+    argumnt = args_Handler()
 
     #Grava o tipo de operação requisitada pelo usuário com o comando -c
-    comando = argumnt.args.c
+    if argumnt.args.c != None:
+        comando = argumnt.args.c
 
     #Instancia a classe de monitoramento do status do relatório. Conforme os
     # processos vão avançando, o relatório vai sendo escrito.
@@ -939,7 +920,7 @@ def main():
         try:
             # missing guarda os nomes de nohs do ATP faltantes.
             # repet guarda o nome de nohs repetidos.
-            autoEquiv, autoIntern = getAtpNames(arqPaths['Nomes'], dbar, dlin, argumnt.args.base)
+            autoEquiv, autoIntern = getAtpNames(arqPaths['Nomes'], dbar, dlin, base)
             repet = dbar.get_repATP()
 
         except(FileNotFoundError):

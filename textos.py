@@ -28,8 +28,8 @@ texto={
 Segue a lista abaixo:\n\n""",
 
     'relaRncc':
-"""O usuário optou por emitir um Relatório de Níveis de Curto-Circuito das barras
-com equivalentes conectados e somente com as fontes equivalentes gerando.
+"""O usuário optou por emitir um relatório com a comparação dos níveis de curto-circuito das barras
+da rede entre o Anafas e o ATP.
 O relatório foi gravado em {}.\n\n""",
 
     'relaArq':
