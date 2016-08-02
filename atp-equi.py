@@ -610,7 +610,7 @@ def compCurto(arqPaths, dbar):
 
     # Aqui roda os .atps e faz a leitura dos valores de curto-circuito
 
-    # subprocess.run(str(batchPath), shell = True)
+    subprocess.run(str(batchPath), shell = True)
 
     for arquivo in atpWork.glob('*f_*.lis'):
 
@@ -629,6 +629,11 @@ def compCurto(arqPaths, dbar):
                         faseA = [float(vals[4]) / sqrt(2) / 1e3, abs(tan(radians(float(vals[5]))))]
                     elif vals[2] == 'Open':
                         valsCurto[barra]['1F']['ATP'] = faseA
+                        try:
+                            valsCurto[barra]['1F']['DIFF'] = [(1 - valsCurto[barra]['1F']['ANAFAS'][0] / faseA[0]) * 100,
+                                                          (1 - valsCurto[barra]['1F']['ANAFAS'][1] / faseA[1]) * 100]
+                        except(ZeroDivisionError):
+                            valsCurto[barra]['1F']['DIFF'] = [99999, 99999]
                     else:
                          faseB = [float(vals[4]) / sqrt(2) / 1e3, abs(tan(radians(float(vals[5]))))]
                          flag = 2
@@ -642,38 +647,70 @@ def compCurto(arqPaths, dbar):
                     #     print('deu merda\n')
 
                     valsCurto[barra]['3F']['ATP'] = [(faseA[0] + faseB[0] + float(vals[4]) / sqrt(2) / 1e3) / 3,
-                                                    (faseA[1] + faseB[1] + abs(tan(radians(float(vals[5]))))) / 3] 
+                                                    (faseA[1] + faseB[1] + abs(tan(radians(float(vals[5]))))) / 3]
 
+                    try:
+                        valsCurto[barra]['3F']['DIFF'] = [(1 - valsCurto[barra]['3F']['ANAFAS'][0] / valsCurto[barra]['3F']['ATP'][0]) * 100,
+                                                      (1 - valsCurto[barra]['3F']['ANAFAS'][1] / valsCurto[barra]['3F']['ATP'][1]) * 100]
+                    except(ZeroDivisionError):
+                        valsCurto[barra]['3F']['DIFF'] = [99999, 99999]
 
     relaRncc = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].resolve().stem) + '-rncc.rel')
 
+    # Begin sorting of differences
+
+    diffsCresc = []
+    for barra in valsCurto:
+        if valsCurto[barra]['3F'].get('ATP') != None:
+            diffsCresc.append([abs(valsCurto[barra]['3F']['DIFF'][0]), barra])
+    diffsCresc = sorted(diffsCresc)
+
+    # Começa escrita no relatório
+
     with relaRncc.open('w') as rela:
 
-        rela.write('IDENTIFICACAO TRIFASICO MONOFASICO\n')
-        rela.write('ANAFAS ATP\n')
-        rela.write('NUM. NOME VBAS MOD(kA) X/R MOD(kA) X/R\n\n')
+        rela.write('{:^33}  {:^35}  {:^35}\n'.format(
+                                'IDENTIFICACAO', 'TRIFASICO', 'MONOFASICO'))
 
-        for barra in valsCurto:
+        rela.write('{:^5}  {:^12}  {:^5}  {:^5}  '.format(
+                                                'NUM.', 'NOME', 'ATP', 'VBAS'))
+
+        rela.write('{:^5} {:^5} {:^5} {:^5} {:^5} {:^5}  '.format(
+                                        'kA', 'X/R', 'kA', 'X/R', '%', '%'))
+
+        rela.write('{:^5} {:^5} {:^5} {:^5} {:^5} {:^5}\n'.format(
+                                        'kA', 'X/R', 'kA', 'X/R', '%', '%'))
+
+        rela.write(35 * ' ')
+        
+        rela.write('{:^11} {:^11} {:^11}  {:^11} {:^11} {:^11}\n'.format(
+                    'ANAFAS', 'ATP', 'DIFERENÇA', 'ANAFAS', 'ATP', 'DIFERENÇA'))
+
+        for diff in diffsCresc:
+
+            barra = diff[1]
 
             if valsCurto[barra]['3F'].get('ATP') != None:
-                rela.write('{!s:>5.5} {:>15.15} {:>6.6} {!s:>5.5}'.format(
+                rela.write('{!s:>5.5}  {:<12.12}  {:<5.5}  {!s:<5.5}  '.format(
                                                         barra,
                                                         dbar.get_nomeAna(barra),
                                                         dbar.get_nomeAtp(barra),
-                                                        dbar.get_vBase(barra))
-                rela.write('')
-                            str(valsCurto[barra]['3F']['ANAFAS'][0]) +
-                            str(valsCurto[barra]['3F']['ANAFAS'][1]) +
-                            str(valsCurto[barra]['3F']['ATP'][0]) +
-                            str(valsCurto[barra]['3F']['ATP'][1]) +
-                            str(valsCurto[barra]['1F']['ANAFAS'][0]) +
-                            str(valsCurto[barra]['1F']['ANAFAS'][1]) +
-                            str(valsCurto[barra]['1F']['ATP'][0]) +
-                            str(valsCurto[barra]['1F']['ATP'][1]) +
-                            '\n')
-                }
-
-
+                                                        dbar.get_vBase(barra)))
+                rela.write('{!s:>5.5} {!s:>5.5} {!s:>5.5} {!s:>5.5} {!s:>5.5} {!s:>5.5}  '.format(
+                                        valsCurto[barra]['3F']['ANAFAS'][0],
+                                        valsCurto[barra]['3F']['ANAFAS'][1],
+                                        valsCurto[barra]['3F']['ATP'][0],
+                                        valsCurto[barra]['3F']['ATP'][1],
+                                        valsCurto[barra]['3F']['DIFF'][0],
+                                        valsCurto[barra]['3F']['DIFF'][1]))
+                rela.write('{!s:>5.5} {!s:>5.5} {!s:>5.5} {!s:>5.5} {!s:>5.5} {!s:>5.5}\n'.format(
+                                        valsCurto[barra]['1F']['ANAFAS'][0],
+                                        valsCurto[barra]['1F']['ANAFAS'][1],
+                                        valsCurto[barra]['1F']['ATP'][0],
+                                        valsCurto[barra]['1F']['ATP'][1],
+                                        valsCurto[barra]['1F']['DIFF'][0],
+                                        valsCurto[barra]['1F']['DIFF'][1]))
+                                            
         
     return valsCurto
 
