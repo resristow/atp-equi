@@ -125,6 +125,11 @@ class Branches:
 
     def addBranch(self, branch, dbar):
         # Acrescenta no dicionário 'self.branches' o novo circuito (ou ramo)
+        if not branch.interno:
+            for node in branch.nodes:
+                if dbar.nodes[node].aux:
+                    return 1
+
         self.branches[branch.nodes] = branch
 
         # Averigua se há algum valor negativo e acrescenta na lista 'self.negs'
