@@ -29,7 +29,6 @@ class args_Handler():
         
         self.args = parser.parse_args()
 
-    
 
 class Nodes:
     """Coleção de barras do equivalente.
@@ -101,6 +100,8 @@ class node:
         self.nomeAna = ''
         self.nomeAtp = ''
         self.nomeGerAtp = ''
+        self.volt = 1
+        self.ang = 0
         self.aux = 0
         self.AutoNamed = 0
         self.addLinha(linha=linha)
@@ -174,6 +175,7 @@ class Branches:
                 if not n.interno:
                     saida.append(n)
         return saida
+
 
 class branch:
     """
@@ -253,7 +255,6 @@ class specialFloat(float):
             else: return str(valor)
 
 
-
 # FUNÇÕES ---------------------------------------------------------------------#
 
 def get_DBAR(arquivo, colecao):
@@ -299,7 +300,7 @@ def get_EQUIV(arquivo, colecao, dbar):
             flag = flag | 1
     return equiv
 
-def getAtpNames(arquivo, dbar, dlin, base):
+def getAtpNames(arqPaths, dbar, dlin, base):
     """Faz a leitura do arquivo de texto com os nomes das barras de fronteira 
     para o ATP.
     Esses nomes são acrescentados nas instâncias dos nós.
@@ -309,7 +310,7 @@ def getAtpNames(arquivo, dbar, dlin, base):
     Também é feita uma verificacao se ha algum nome de noh para o ATP faltante.
     """
 
-    wb = load_workbook(str(arquivo))
+    wb = load_workbook(str(arqPaths['Nomes']))
 
     ws = wb.worksheets[0]
 
@@ -332,6 +333,13 @@ def getAtpNames(arquivo, dbar, dlin, base):
 
         tabela_Nomes[num_barra] = [nome_barra, nome_ATP]
 
+    # Leitura do arquivo com valores de tensão e ângulo das fontes
+    valsFontes = {}
+    arqFontes = arqPaths['initSource'].open('r')
+    for linha in arqFontes:
+        if linha[0] != '#':
+            temp = linha.split()
+            valsFontes[temp[0]] = [float(temp[1]), float(temp[2])]
 
     # Verificacao de falta de nome de no para o ATP (somente para circuitos equivalentes)
     autoEquiv = []
@@ -374,8 +382,18 @@ def getAtpNames(arquivo, dbar, dlin, base):
 
     dbar.check_repATP()
 
-    return autoEquiv, autoIntern
+    ATPnames = {}
+    for node in dbar.get_all():
+        ATPnames[node.nomeAtp] = node
 
+    for fonte in valsFontes:
+        try:
+            ATPnames[fonte].volt = valsFontes[fonte][0]
+            ATPnames[fonte].ang = valsFontes[fonte][1]
+        except(KeyError):
+            pass
+
+    return autoEquiv, autoIntern
 
 def makeLib(arqPaths, dlin, dbar, inner = 0):
     """Funçaõ para compor o arquivo-cartão /BRANCH com extensão .lib, do ATP,
@@ -480,14 +498,14 @@ def makeSource(arqPaths, dbar):
     arquivo.write('/SOURCE\nC < n 1><>< Ampl.  >< Freq.  ><Phase/T0><   A1   ><   T1   >< TSTART >< TSTOP  >\n')
     for barra in dbar.get_all():
         if barra.nomeGerAtp != '':
-            arquivo.write('14{:5}A  {!s:10.10}{:10d}'.format(barra.nomeGerAtp, 
-                str(barra.vBase*sqrt(2/3)*1000), 60) + 30*' ' + 
+            arquivo.write('14{:5}A  {!s:10.10}{!s:>10.10}{!s:>10.10}'.format(barra.nomeGerAtp, 
+                barra.vBase*sqrt(2/3)*1000 * barra.volt, 60, barra.ang) + 20*' ' + 
                 '{:10d}{:10d}'.format(-1,100) + '\n')
-            arquivo.write('14{:5}B  {!s:10.10}{:10d}{:10d}'.format(barra.nomeGerAtp, 
-                barra.vBase*sqrt(2/3)*1000, 60, -120) + 20*' ' + 
+            arquivo.write('14{:5}B  {!s:10.10}{!s:>10.10}{!s:>10.10}'.format(barra.nomeGerAtp, 
+                barra.vBase*sqrt(2/3)*1000 * barra.volt, 60, -120 + barra.ang) + 20*' ' + 
                 '{:10d}{:10d}'.format(-1,100) + '\n')
-            arquivo.write('14{:5}C  {!s:10.10}{:10d}{:10d}'.format(barra.nomeGerAtp, 
-                barra.vBase*sqrt(2/3)*1000, 60, -240) + 20*' ' + 
+            arquivo.write('14{:5}C  {!s:10.10}{!s:>10.10}{!s:>10.10}'.format(barra.nomeGerAtp, 
+                barra.vBase*sqrt(2/3)*1000 * barra.volt, 60, -240 + barra.ang) + 20*' ' + 
                 '{:10d}{:10d}'.format(-1,100) + '\n')
 
 def compCurto(arqPaths, dbar):
@@ -843,7 +861,8 @@ def paramsIniciais(params):
                 'cwd' : '',
                 'Rncc' : '',
                 'Atp' : '',
-                'ATPcwd' : ''}
+                'ATPcwd' : '',
+                'initSource': ''}
 
     for param in params['usuario']['caminhos']:
         if params['usuario']['caminhos'][param]:
@@ -857,6 +876,7 @@ def paramsIniciais(params):
     arqPaths['Nomes'] = arqPaths['cwd'] / arqPaths['Nomes']
     arqPaths['Rncc'] = arqPaths['cwd'] / arqPaths['Rncc']
     arqPaths['Atp'] = arqPaths['ATPcwd'] / arqPaths['Atp']
+    arqPaths['initSource'] = arqPaths['cwd'] / arqPaths['initSource']
 
     if params['usuario']['comando']:
         comando = params['usuario']['comando']
@@ -925,7 +945,7 @@ def main():
         try:
             # missing guarda os nomes de nohs do ATP faltantes.
             # repet guarda o nome de nohs repetidos.
-            autoEquiv, autoIntern = getAtpNames(arqPaths['Nomes'], dbar, dlin, base)
+            autoEquiv, autoIntern = getAtpNames(arqPaths, dbar, dlin, base)
             repet = dbar.get_repATP()
 
         except(FileNotFoundError):
