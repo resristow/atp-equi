@@ -22,10 +22,14 @@ class args_Handler():
         parser = argparse.ArgumentParser(description='Cria um equivalente para o ATP', 
                         prog='ATP-EQUI')
         parser.add_argument('c', metavar='Comando', nargs='?', 
-                        help="""Especifica que operacao deve ser feita [esbiR] -Imprime
-                        [e]quivalente.lib, imprime [s]ource.lib, imprime [R]NCC.rel,
-                        lista [b]arras com equivalentes e sai, imprime .lib da
-                        rede [i]nterna.""")
+                        help="""Especifica que operacao deve ser feita (esbiR[j])
+                        e: imprime equivalente.lib
+                        s: imprime source.lib
+                        R: compara niveis de curto entre Anafas e ATP, rodando
+                           automaticamente os curto-circuitos no ATP
+                        Rj: mesmo que R, mas não roda o ATP
+                        b: lista barras com equivalentes
+                        i: imprime .lib da rede interna.""")
         
         self.args = parser.parse_args()
 
@@ -145,8 +149,10 @@ class Branches:
         for n in branch.paramsOhm:
             if branch.params[n] == 9999.99:
                 branch.paramsOhm[n] = 999999
-            else: branch.paramsOhm[n] = specialFloat(branch.params[n] * 
+            else:
+                branch.paramsOhm[n] = specialFloat(branch.params[n] * 
                         dbar.get_vBase(branch.nodes[0])**2/10000)
+
 
     def get_equiNodes(self, inner = 0):
         barrasEquiv = set()
@@ -236,12 +242,11 @@ class specialFloat(float):
 
         if valor > 0:
             if log10(valor) < -4:
-                temp = modf(valor*10**-floor(log10(valor)))
-                s = str(temp[1]*10**floor(log10(valor)))
-                return s[0] + '.' + s[1:]
+                temp = round(valor * 10 ** -floor(log10(valor)))
+                return str(temp) + '.e' + str(floor(log10(valor)))
 
             elif log10(valor) >= 6:
-                temp = round(valor*10**-floor(log10(valor)),1)
+                temp = round(valor * 10 ** -floor(log10(valor)),1)
                 return str(temp) + 'e' + str(floor(log10(valor)))
 
 
@@ -404,7 +409,17 @@ def makeLib(arqPaths, dlin, dbar, inner = 0):
     else:
         arquivo = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-interna.lib')
     arquivo = arquivo.open('w')
+
     numTrf = 1
+    limTrf = 999
+    contTrf = 0
+
+    def strNumTrf(numTrf, contTrf):
+        if contTrf:
+            return chr(contTrf + 64) + str(numTrf)
+        else:
+            return str(numTrf)
+
     
     arquivo.write('/BRANCH\n')
 
@@ -443,9 +458,9 @@ def makeLib(arqPaths, dlin, dbar, inner = 0):
 
         # Se for um 'Trafo':
         elif branch.tipo == 'T':
-             nodeTo = [str(numTrf)+'TIEA',
-                        str(numTrf)+'TIEB',
-                        str(numTrf)+'TIEC']
+             nodeTo = [strNumTrf(numTrf, contTrf)+'TIA',
+                        strNumTrf(numTrf, contTrf)+'TIB',
+                        strNumTrf(numTrf, contTrf)+'TIC']
 
         # Se for uma 'LT':
         else:
@@ -470,23 +485,28 @@ def makeLib(arqPaths, dlin, dbar, inner = 0):
         if branch.tipo == 'T':
 
 
-            arquivo.write('  TRANSFORMER' + 25*' ' + 'ATIE'+
-                '{0:<2s}'.format(str(numTrf))+'1.E6\n')
+            arquivo.write('  TRANSFORMER' + 25*' ' + 'ATI'+
+                '{0:<3s}'.format(strNumTrf(numTrf, contTrf))+'1.E6\n')
             arquivo.write(' '*12 + '9999' + '\n')
-            arquivo.write(' 1'+'{0:<6s}'.format(str(numTrf)+'TIEA') + ' '*18 +
+            arquivo.write(' 1'+'{0:<6s}'.format(strNumTrf(numTrf, contTrf)+'TIA') + ' '*18 +
                          '.00001.00001'+str(dbar.get_vBase(branch.nodes[0])) + '\n')
             arquivo.write(' 2'+ dbar.get_nomeAtp(branch.nodes[1]) +'A' + ' '*18 +
                          '.00001.00001'+str(dbar.get_vBase(branch.nodes[1]))+ '\n')
 
-            arquivo.write('  TRANSFORMER ATIE'+'{0:<2s}'.format(str(numTrf)) + 
-                        ' '*18 + '{0:<6s}'.format('BTIE'+str(numTrf))+'\n')
-            arquivo.write(' 1'+'{0:<6s}'.format(str(numTrf) + 'TIEB') + '\n')
+            arquivo.write('  TRANSFORMER ATI'+'{0:<3s}'.format(strNumTrf(numTrf, contTrf)) + 
+                        ' '*18 + '{0:<6s}'.format('BTI'+strNumTrf(numTrf, contTrf))+'\n')
+            arquivo.write(' 1'+'{0:<6s}'.format(strNumTrf(numTrf, contTrf) + 'TIB') + '\n')
             arquivo.write(' 2'+dbar.get_nomeAtp(branch.nodes[1])+'B' + '\n')
 
-            arquivo.write('  TRANSFORMER ATIE'+'{0:<2s}'.format(str(numTrf)) + 
-                        ' '*18 + '{0:<6s}'.format('CTIE'+str(numTrf))+'\n')
-            arquivo.write(' 1'+'{0:<6s}'.format(str(numTrf) + 'TIEC') + '\n')
+            arquivo.write('  TRANSFORMER ATI'+'{0:<3s}'.format(strNumTrf(numTrf, contTrf)) + 
+                        ' '*18 + '{0:<6s}'.format('CTI'+strNumTrf(numTrf, contTrf))+'\n')
+            arquivo.write(' 1'+'{0:<6s}'.format(strNumTrf(numTrf, contTrf) + 'TIC') + '\n')
             arquivo.write(' 2'+dbar.get_nomeAtp(branch.nodes[1])+'C' + '\n')
+
+            if numTrf > (limTrf - 1):
+                numTrf = 0
+                limTrf = 98
+                contTrf += 1
 
             numTrf += 1
 
@@ -508,7 +528,7 @@ def makeSource(arqPaths, dbar):
                 barra.vBase*sqrt(2/3)*1000 * barra.volt, 60, -240 + barra.ang) + 20*' ' + 
                 '{:10d}{:10d}'.format(-1,100) + '\n')
 
-def compCurto(arqPaths, dbar):
+def compCurto(arqPaths, dbar, jump=0):
     """Descrição aqui
     """
     
@@ -535,79 +555,80 @@ def compCurto(arqPaths, dbar):
 
     rncc.close()
             
-
     atpWork = arqPaths['ATPcwd']
-    batchPath = atpWork / Path('rodaTodos.bat')
-    tempBatch = batchPath.open('w')
 
-    tempBatch.write('set GNUDIR=' + str(arqPaths['GNUDIR']) + '\\\n\n')
-    tempBatch.write('cd /d ' + str(batchPath.parent) + '\n\n')
+    if not jump:
+        batchPath = atpWork / Path('rodaTodos.bat')
+        tempBatch = batchPath.open('w')
 
-    batchConst = [str(arqPaths['tpbigDir'] / arqPaths['tpbig']) + ' disk ', ' s -r\n']
+        tempBatch.write('set GNUDIR=' + str(arqPaths['GNUDIR']) + '\\\n\n')
+        tempBatch.write('cd /d ' + str(batchPath.parent) + '\n\n')
+
+        batchConst = [str(arqPaths['tpbigDir'] / arqPaths['tpbig']) + ' disk ', ' s -r\n']
 
 
-    flag = 0
+        flag = 0
 
-    for barra in dbar.get_all():
+        for barra in dbar.get_all():
 
-        if (barra.numAna == 0) or barra.AutoNamed:
-            continue
+            if (barra.numAna == 0) or barra.AutoNamed:
+                continue
 
-        for tipo in ['3F', '1F']:
+            for tipo in ['3F', '1F']:
 
-            baseAtp = arqPaths['Atp'].open('r')
+                baseAtp = arqPaths['Atp'].open('r')
 
-            tempAtp = atpWork / Path(arqPaths['Atp'].stem + tipo + '_' + str(barra.numAna) + '.atp')
+                tempAtp = atpWork / Path(arqPaths['Atp'].stem + tipo + '_' + str(barra.numAna) + '.atp')
 
-            with tempAtp.open('w') as arqAtp:
+                with tempAtp.open('w') as arqAtp:
 
-                for linha in baseAtp:
+                    for linha in baseAtp:
 
-                    if flag == 1:
-                        arqAtp.write(linha[:8] + 6 * ' ' + '-1' + linha[16:])
-                        flag = 0
-                        continue
+                        if flag == 1:
+                            arqAtp.write(linha[:8] + 6 * ' ' + '-1' + linha[16:])
+                            flag = 0
+                            continue
 
-                    if flag == 2:
-                        arqAtp.write('C ===RESISTÊNCIA DE CURTO-CIRCUITO===\n')
-                        arqAtp.write('  ' +  'CURTOA' + 18 * ' ' + '1e-5\n')
-                        arqAtp.write('  ' +  'CURTOB' + 18 * ' ' + '1e-5\n')
-                        arqAtp.write('  ' +  'CURTOC' + 18 * ' ' + '1e-5\n')
-                        flag = 0
+                        if flag == 2:
+                            arqAtp.write('C ===RESISTÊNCIA DE CURTO-CIRCUITO===\n')
+                            arqAtp.write('  ' +  'CURTOA' + 18 * ' ' + '1e-5\n')
+                            arqAtp.write('  ' +  'CURTOB' + 18 * ' ' + '1e-5\n')
+                            arqAtp.write('  ' +  'CURTOC' + 18 * ' ' + '1e-5\n')
+                            flag = 0
 
-                    if flag == 3:
-                        arqAtp.write('C ===LIGAÇÃO COM O CURTO===\n')
-                        arqAtp.write('C CORRESPONDE A BARRA ' + str(barra.numAna) + '\n')
-                        arqAtp.write('  ' + barra.nomeAtp + 'A' + 'CURTOA' + 7 * ' ' + '-1.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
-                        if tipo == '3F':
-                            arqAtp.write('  ' + barra.nomeAtp + 'B' + 'CURTOB' + 7 * ' ' + '-1.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
-                            arqAtp.write('  ' + barra.nomeAtp + 'C' + 'CURTOC' + 7 * ' ' + '-1.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
+                        if flag == 3:
+                            arqAtp.write('C ===LIGAÇÃO COM O CURTO===\n')
+                            arqAtp.write('C CORRESPONDE A BARRA ' + str(barra.numAna) + '\n')
+                            arqAtp.write('  ' + barra.nomeAtp + 'A' + 'CURTOA' + 7 * ' ' + '-1.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
+                            if tipo == '3F':
+                                arqAtp.write('  ' + barra.nomeAtp + 'B' + 'CURTOB' + 7 * ' ' + '-1.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
+                                arqAtp.write('  ' + barra.nomeAtp + 'C' + 'CURTOC' + 7 * ' ' + '-1.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
 
-                        else:
-                            arqAtp.write('  ' + barra.nomeAtp + 'B' + 'CURTOB' + 7 * ' ' + '10.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
-                            arqAtp.write('  ' + barra.nomeAtp + 'C' + 'CURTOC' + 7 * ' ' + '10.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
+                            else:
+                                arqAtp.write('  ' + barra.nomeAtp + 'B' + 'CURTOB' + 7 * ' ' + '10.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
+                                arqAtp.write('  ' + barra.nomeAtp + 'C' + 'CURTOC' + 7 * ' ' + '10.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
 
-                        flag = 0
+                            flag = 0
 
-                    if 'C  dT  >< Tmax >< Xopt >< Copt ><Epsiln>' in linha:
-                        flag = 1
+                        if 'C  dT  >< Tmax >< Xopt >< Copt ><Epsiln>' in linha:
+                            flag = 1
 
-                    if '/BRANCH' in linha:
-                        flag = 2
+                        if '/BRANCH' in linha:
+                            flag = 2
 
-                    if '/SWITCH' in linha:
-                        flag = 3
-                        
+                        if '/SWITCH' in linha:
+                            flag = 3
+                            
 
-                    arqAtp.write(linha)
+                        arqAtp.write(linha)
 
-            tempBatch.write(batchConst[0] + tempAtp.name + batchConst[1])
+                tempBatch.write(batchConst[0] + tempAtp.name + batchConst[1])
 
-    tempBatch.close()
+        tempBatch.close()
 
-    # Aqui roda os .atps e faz a leitura dos valores de curto-circuito
+        # Aqui roda os .atps e faz a leitura dos valores de curto-circuito
 
-    subprocess.run(str(batchPath), shell = True)
+        subprocess.run(str(batchPath), shell = True)
 
     for arquivo in atpWork.glob('*f_*.lis'):
 
@@ -640,8 +661,6 @@ def compCurto(arqPaths, dbar):
                     flag = 1
 
                 if flag == 2:
-                    # if (faseA[0] - faseB[0]) / faseA[0] > 0.02:
-                    #     print('deu merda\n')
 
                     valsCurto[barra]['3F']['ATP'] = [(faseA[0] + faseB[0] + float(vals[4]) / sqrt(2) / 1e3) / 3,
                                                     (faseA[1] + faseB[1] + abs(tan(radians(float(vals[5]))))) / 3]
@@ -959,7 +978,9 @@ def main():
             relaWatch.relaBuffer = ('miss', autoEquiv, 'equi')
 
         if 'R' in comando:
-            valsCurto = compCurto(arqPaths, dbar)
+            if 'j' in comando:
+                valsCurto = compCurto(arqPaths, dbar, jump=1)
+            valsCurto = compCurto(arqPaths, dbar, jump=0)
             relaWatch.relaBuffer = ('rncc', valsCurto)
 
 
