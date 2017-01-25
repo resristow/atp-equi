@@ -340,11 +340,14 @@ def getAtpNames(arqPaths, dbar, dlin, base):
 
     # Leitura do arquivo com valores de tensão e ângulo das fontes
     valsFontes = {}
-    arqFontes = arqPaths['initSource'].open('r')
-    for linha in arqFontes:
-        if linha[0] != '#':
-            temp = linha.split()
-            valsFontes[temp[0]] = [float(temp[1]), float(temp[2])]
+    try:
+        arqFontes = arqPaths['initSource'].open('r')
+        for linha in arqFontes:
+            if linha[0] != '#':
+                temp = linha.split()
+                valsFontes[temp[0]] = [float(temp[1]), float(temp[2])]
+    except(FileNotFoundError):
+        pass
 
     # Verificacao de falta de nome de no para o ATP (somente para circuitos equivalentes)
     autoEquiv = []
@@ -554,7 +557,8 @@ def compCurto(arqPaths, dbar, jump=0):
             rncc.readline()
 
     rncc.close()
-            
+
+
     atpWork = arqPaths['ATPcwd']
 
     if not jump:
@@ -567,11 +571,12 @@ def compCurto(arqPaths, dbar, jump=0):
         batchConst = [str(arqPaths['tpbigDir'] / arqPaths['tpbig']) + ' disk ', ' s -r\n']
 
 
-        flag = 0
+        flag = 'ok'
 
         for barra in dbar.get_all():
 
-            if (barra.numAna == 0) or barra.AutoNamed:
+            # if (barra.numAna == 0) or barra.AutoNamed:
+            if (barra.numAna == 0) or (barra.numAna not in valsCurto.keys()):
                 continue
 
             for tipo in ['3F', '1F']:
@@ -584,19 +589,19 @@ def compCurto(arqPaths, dbar, jump=0):
 
                     for linha in baseAtp:
 
-                        if flag == 1:
+                        if flag == 'top':
                             arqAtp.write(linha[:8] + 6 * ' ' + '-1' + linha[16:])
-                            flag = 0
+                            flag = 'ok'
                             continue
 
-                        if flag == 2:
+                        if flag == 'branch':
                             arqAtp.write('C ===RESISTÊNCIA DE CURTO-CIRCUITO===\n')
                             arqAtp.write('  ' +  'CURTOA' + 18 * ' ' + '1e-5\n')
                             arqAtp.write('  ' +  'CURTOB' + 18 * ' ' + '1e-5\n')
                             arqAtp.write('  ' +  'CURTOC' + 18 * ' ' + '1e-5\n')
-                            flag = 0
+                            flag = 'ok'
 
-                        if flag == 3:
+                        if 'switch' in flag:
                             arqAtp.write('C ===LIGAÇÃO COM O CURTO===\n')
                             arqAtp.write('C CORRESPONDE A BARRA ' + str(barra.numAna) + '\n')
                             arqAtp.write('  ' + barra.nomeAtp + 'A' + 'CURTOA' + 7 * ' ' + '-1.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
@@ -608,17 +613,24 @@ def compCurto(arqPaths, dbar, jump=0):
                                 arqAtp.write('  ' + barra.nomeAtp + 'B' + 'CURTOB' + 7 * ' ' + '10.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
                                 arqAtp.write('  ' + barra.nomeAtp + 'C' + 'CURTOC' + 7 * ' ' + '10.' + 6 * ' ' + '1.E3' + 45 * ' ' + '1\n')
 
-                            flag = 0
+                            if 'no' in flag:
+                                arqAtp.write('/OUTPUT\n')
+
+                            flag = 'done'
 
                         if 'C  dT  >< Tmax >< Xopt >< Copt ><Epsiln>' in linha:
-                            flag = 1
+                            flag = 'top'
 
                         if '/BRANCH' in linha:
-                            flag = 2
+                            flag = 'branch'
 
                         if '/SWITCH' in linha:
-                            flag = 3
-                            
+                            flag = 'switch'
+
+                        if '/OUTPUT' in linha and flag != 'done':
+                            arqAtp.write('/SWITCH\n')
+                            flag = 'no_switch'
+                            continue                            
 
                         arqAtp.write(linha)
 
@@ -652,6 +664,7 @@ def compCurto(arqPaths, dbar, jump=0):
                                                           (1 - valsCurto[barra]['1F']['ANAFAS'][1] / faseA[1]) * 100]
                         except(ZeroDivisionError):
                             valsCurto[barra]['1F']['DIFF'] = [99999, 99999]
+                        break
                     else:
                          faseB = [float(vals[4]) / sqrt(2) / 1e3, abs(tan(radians(float(vals[5]))))]
                          flag = 2
@@ -980,7 +993,8 @@ def main():
         if 'R' in comando:
             if 'j' in comando:
                 valsCurto = compCurto(arqPaths, dbar, jump=1)
-            valsCurto = compCurto(arqPaths, dbar, jump=0)
+            else:
+                valsCurto = compCurto(arqPaths, dbar, jump=0)
             relaWatch.relaBuffer = ('rncc', valsCurto)
 
 
