@@ -1,4 +1,3 @@
 /__pycache__
 /releases/**
-!/releases/atp-equi.exe.spec
-equi-*
+!/releases/NAOREMOVER
