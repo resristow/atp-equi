@@ -966,7 +966,6 @@ def main():
 
 
     # Verifica a existência do arquivo .ANA
-    print arqPaths['Ana'].resolve()
     try:
         arqPaths['Ana'].resolve()
     except(FileNotFoundError):
