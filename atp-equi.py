@@ -1,3 +1,6 @@
+#!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
+
 # ATP-EQUI - Programa para gerar equivalentes de rede para o software ATP
 #     Copyright (C) 2015  Rafael Eduardo S. Ristow (resristow)
 
@@ -32,12 +35,12 @@ VERSION = "1.1.0"
 
 
 class args_Handler():
-    """Classe para administrar os argumentos de entrada do programa em linha de 
+    """Classe para administrar os argumentos de entrada do programa em linha de
     comando."""
     def __init__(self):
-        parser = argparse.ArgumentParser(description='Cria um equivalente para o ATP', 
+        parser = argparse.ArgumentParser(description='Cria um equivalente para o ATP',
                         prog='ATP-EQUI')
-        parser.add_argument('c', metavar='Comando', nargs='?', 
+        parser.add_argument('c', metavar='Comando', nargs='?',
                         help="""Especifica que operacao deve ser feita (esbiR[j])
                         e: imprime equivalente.lib
                         s: imprime source.lib
@@ -46,7 +49,7 @@ class args_Handler():
                         Rj: mesmo que R, mas não roda o ATP
                         b: lista barras com equivalentes
                         i: imprime .lib da rede interna.""")
-        
+
         self.args = parser.parse_args()
 
 
@@ -94,7 +97,7 @@ class Nodes:
         for barra in self.get_all():
             gerName = self.get_nomeGerAtp(barra.numAna)
             if gerName != '':
-                if gerName in repGerATP: 
+                if gerName in repGerATP:
                     self.alter(numAna = barra.numAna, attr = 'nomeGerAtp', dado = 'F' + gerName[:-1])
                     self.check_repGerATP()
                 repGerATP.add(gerName)
@@ -166,7 +169,7 @@ class Branches:
             if branch.params[n] == 9999.99:
                 branch.paramsOhm[n] = 999999
             else:
-                branch.paramsOhm[n] = specialFloat(branch.params[n] * 
+                branch.paramsOhm[n] = specialFloat(branch.params[n] *
                         dbar.get_vBase(branch.nodes[0])**2/10000)
 
 
@@ -250,7 +253,7 @@ class branch:
 
 
 class specialFloat(float):
-    """Classe herdada de float para poder mudar o comportamento do metodo 
+    """Classe herdada de float para poder mudar o comportamento do metodo
      __str__, que controla como eh feita a conversao do float para string"""
     def __str__ (self):
 
@@ -289,11 +292,11 @@ def get_DBAR(arquivo, colecao):
     dbar.alter(dado = 'Terra')
 
     for linha in arquivo:
-        if (flag == 3) & ('99999' in linha): 
+        if (flag == 3) & ('99999' in linha):
             flag = 0
             break
         if (flag == 1) and not ('(' in linha[0]):
-            flag = flag | 2  
+            flag = flag | 2
         if flag == 3:
             dbar.addNode(node(linha))
         if 'dbar' in linha[0:4].lower():
@@ -322,7 +325,7 @@ def get_EQUIV(arquivo, colecao, dbar):
     return equiv
 
 def getAtpNames(arqPaths, dbar, dlin, base):
-    """Faz a leitura do arquivo de texto com os nomes das barras de fronteira 
+    """Faz a leitura do arquivo de texto com os nomes das barras de fronteira
     para o ATP.
     Esses nomes são acrescentados nas instâncias dos nós.
     Em seguida, é feito uma verificação para ver se não há nomes de nó repeti-
@@ -379,7 +382,7 @@ def getAtpNames(arqPaths, dbar, dlin, base):
             temp += 1
             autoEquiv.append((barra, dbar.get_nomeAna(barra), autoName))
             dbar.alter(numAna = barra, dado = 1, attr = 'AutoNamed')
-        try: 
+        try:
             if dlin.get_tipo((barra,0)) == 'G':
                 dbar.alter(numAna = barra, dado = 'F' + dbar.get_nomeAtp(barra)[:-1], attr = 'nomeGerAtp')
         except: pass
@@ -396,10 +399,10 @@ def getAtpNames(arqPaths, dbar, dlin, base):
             temp += 1
             autoIntern.append((barra, dbar.get_nomeAna(barra), autoName))
             dbar.alter(numAna = barra, dado = 1, attr = 'AutoNamed')
-        try: 
+        try:
             if dlin.get_tipo((barra,0)) == 'G':
                 dbar.alter(numAna = barra, dado = 'F' + tabela_Nomes[barra][1][:-1], attr = 'nomeGerAtp')
-        except: pass    
+        except: pass
 
 
     dbar.check_repGerATP()
@@ -439,7 +442,7 @@ def makeLib(arqPaths, dlin, dbar, inner = 0):
         else:
             return str(numTrf)
 
-    
+
     arquivo.write('/BRANCH\n')
 
     if inner:
@@ -451,8 +454,8 @@ def makeLib(arqPaths, dlin, dbar, inner = 0):
     for branch in branches:
         # Escreve o delimitador superior, com vários '=' e, embaixo, o nome das
         #barras DE e PARA
-        arquivo.write('C ' + 77*'=' + '\n' + 'C =====' + 
-            dbar.get_nomeAna(branch.nodes[0]) + ' - ' + 
+        arquivo.write('C ' + 77*'=' + '\n' + 'C =====' +
+            dbar.get_nomeAna(branch.nodes[0]) + ' - ' +
             dbar.get_nomeAna(branch.nodes[1]) + '\n')
 
         # Compões a lista com o nome do nó DE para cada uma das 3 fases
@@ -485,14 +488,14 @@ def makeLib(arqPaths, dlin, dbar, inner = 0):
         else:
             nodeTo = [str(dbar.get_nomeAtp(branch.nodes[1]))+'A',
                     str(dbar.get_nomeAtp(branch.nodes[1]))+'B',
-                    str(dbar.get_nomeAtp(branch.nodes[1]))+'C'] 
+                    str(dbar.get_nomeAtp(branch.nodes[1]))+'C']
 
         # A seguir, é feita a escrita dos dados do circuito no arquivo-cartão.
 
-        arquivo.write('51{}{:6}'.format(nodeFrom[0],nodeTo[0]) + 12*' ' + 
+        arquivo.write('51{}{:6}'.format(nodeFrom[0],nodeTo[0]) + 12*' ' +
             '{0!s:<6.6}'.format(branch.paramsOhm['r0']) + 6*' ' +
             '{0!s:<12.12}'.format(branch.paramsOhm['x0']) + '\n')
-        arquivo.write('52{}{:6}'.format(nodeFrom[1],nodeTo[1]) + 12*' ' + 
+        arquivo.write('52{}{:6}'.format(nodeFrom[1],nodeTo[1]) + 12*' ' +
             '{0!s:<6.6}'.format(branch.paramsOhm['r1']) + 6*' ' +
             '{0!s:<12.12}'.format(branch.paramsOhm['x1']) + '\n')
         arquivo.write('53' + nodeFrom[2] + nodeTo[2] + '\n')
@@ -512,12 +515,12 @@ def makeLib(arqPaths, dlin, dbar, inner = 0):
             arquivo.write(' 2'+ dbar.get_nomeAtp(branch.nodes[1]) +'A' + ' '*18 +
                          '.00001.00001'+str(dbar.get_vBase(branch.nodes[1]))+ '\n')
 
-            arquivo.write('  TRANSFORMER ATI'+'{0:<3s}'.format(strNumTrf(numTrf, contTrf)) + 
+            arquivo.write('  TRANSFORMER ATI'+'{0:<3s}'.format(strNumTrf(numTrf, contTrf)) +
                         ' '*18 + '{0:<6s}'.format('BTI'+strNumTrf(numTrf, contTrf))+'\n')
             arquivo.write(' 1'+'{0:<6s}'.format(strNumTrf(numTrf, contTrf) + 'TIB') + '\n')
             arquivo.write(' 2'+dbar.get_nomeAtp(branch.nodes[1])+'B' + '\n')
 
-            arquivo.write('  TRANSFORMER ATI'+'{0:<3s}'.format(strNumTrf(numTrf, contTrf)) + 
+            arquivo.write('  TRANSFORMER ATI'+'{0:<3s}'.format(strNumTrf(numTrf, contTrf)) +
                         ' '*18 + '{0:<6s}'.format('CTI'+strNumTrf(numTrf, contTrf))+'\n')
             arquivo.write(' 1'+'{0:<6s}'.format(strNumTrf(numTrf, contTrf) + 'TIC') + '\n')
             arquivo.write(' 2'+dbar.get_nomeAtp(branch.nodes[1])+'C' + '\n')
@@ -537,20 +540,20 @@ def makeSource(arqPaths, dbar):
     arquivo.write('/SOURCE\nC < n 1><>< Ampl.  >< Freq.  ><Phase/T0><   A1   ><   T1   >< TSTART >< TSTOP  >\n')
     for barra in dbar.get_all():
         if barra.nomeGerAtp != '':
-            arquivo.write('14{:5}A  {!s:10.10}{!s:>10.10}{!s:>10.10}'.format(barra.nomeGerAtp, 
-                barra.vBase*sqrt(2/3)*1000 * barra.volt, 60, barra.ang) + 20*' ' + 
+            arquivo.write('14{:5}A  {!s:10.10}{!s:>10.10}{!s:>10.10}'.format(barra.nomeGerAtp,
+                barra.vBase*sqrt(2/3)*1000 * barra.volt, 60, barra.ang) + 20*' ' +
                 '{:10d}{:10d}'.format(-1,100) + '\n')
-            arquivo.write('14{:5}B  {!s:10.10}{!s:>10.10}{!s:>10.10}'.format(barra.nomeGerAtp, 
-                barra.vBase*sqrt(2/3)*1000 * barra.volt, 60, -120 + barra.ang) + 20*' ' + 
+            arquivo.write('14{:5}B  {!s:10.10}{!s:>10.10}{!s:>10.10}'.format(barra.nomeGerAtp,
+                barra.vBase*sqrt(2/3)*1000 * barra.volt, 60, -120 + barra.ang) + 20*' ' +
                 '{:10d}{:10d}'.format(-1,100) + '\n')
-            arquivo.write('14{:5}C  {!s:10.10}{!s:>10.10}{!s:>10.10}'.format(barra.nomeGerAtp, 
-                barra.vBase*sqrt(2/3)*1000 * barra.volt, 60, -240 + barra.ang) + 20*' ' + 
+            arquivo.write('14{:5}C  {!s:10.10}{!s:>10.10}{!s:>10.10}'.format(barra.nomeGerAtp,
+                barra.vBase*sqrt(2/3)*1000 * barra.volt, 60, -240 + barra.ang) + 20*' ' +
                 '{:10d}{:10d}'.format(-1,100) + '\n')
 
 def compCurto(arqPaths, dbar, jump=0):
     """Descrição aqui
     """
-    
+
     valsCurto = {}
 
     rncc = arqPaths['Rncc'].open('r')
@@ -646,7 +649,7 @@ def compCurto(arqPaths, dbar, jump=0):
                         if '/OUTPUT' in linha and flag != 'done':
                             arqAtp.write('/SWITCH\n')
                             flag = 'no_switch'
-                            continue                            
+                            continue
 
                         arqAtp.write(linha)
 
@@ -727,7 +730,7 @@ def compCurto(arqPaths, dbar, jump=0):
                                         'kA', 'X/R', 'kA', 'X/R', '%', '%'))
 
         rela.write(35 * ' ')
-        
+
         rela.write('{:^11} {:^11} {:^11}  {:^11} {:^11} {:^11}\n'.format(
                     'ANAFAS', 'ATP', 'DIFERENÇA', 'ANAFAS', 'ATP', 'DIFERENÇA'))
 
@@ -755,8 +758,8 @@ def compCurto(arqPaths, dbar, jump=0):
                                         valsCurto[barra]['1F']['ATP'][1],
                                         valsCurto[barra]['1F']['DIFF'][0],
                                         valsCurto[barra]['1F']['DIFF'][1]))
-                                            
-        
+
+
     return valsCurto
 
 
@@ -765,10 +768,10 @@ def compCurto(arqPaths, dbar, jump=0):
 
 
 def make_Rela(relaBuffer, arqPaths):
-    """Função para escrever o relatório. Ela é chamada toda vez que o buffer 
-    relaBuffer é escrito. O que será escrito no relatório dependerá do que está 
+    """Função para escrever o relatório. Ela é chamada toda vez que o buffer
+    relaBuffer é escrito. O que será escrito no relatório dependerá do que está
     no buffer.
-    O buffer é um tuple com uma string para selecionar o texto e um número 
+    O buffer é um tuple com uma string para selecionar o texto e um número
     arbitrário de elementos, de forma a fornecer a essa função as informações
     necessárias para escrever o relatório.
     relaBuffer = 'str' + *args
@@ -779,7 +782,7 @@ def make_Rela(relaBuffer, arqPaths):
     Anafas
     'barras' - Referente à opção do usuário de apenas emitir as barras de fron-
     teira do equivalente .ANA.
-    'atp' + binário indicando sucesso da leitura do arquivo - Referente à 
+    'atp' + binário indicando sucesso da leitura do arquivo - Referente à
     leitura do arquivo de texto com os nomes de barras de fronteira a serem uti-
     lizadas no ATP.
     'diff' + diferença no número de barras entre o arquivo .ANA e o de texto com
@@ -801,10 +804,10 @@ def make_Rela(relaBuffer, arqPaths):
         rela = rela.open('w')
         data = datetime.datetime.now(GMT1())
         rela.write(textos.texto['welcome'].format(VERSION, data.day, data.month, data.year, data.hour, data.minute))
-        
-    else: rela = rela.open('a') 
 
-    
+    else: rela = rela.open('a')
+
+
     if 'Ana' in relaBuffer[0]:
         if not relaBuffer[1]:
             rela.write(textos.texto['relaErroArq'].format(arqPaths['Ana'].absolute()))
@@ -866,7 +869,7 @@ def make_Rela(relaBuffer, arqPaths):
         rela.write('{:^6}{:^15}{:^10}{:^10}\n'.format(*textos.texto['cabecalhoF'].split()))
         for barra in relaBuffer[2].get_equiNodes():
             rela.write('{:^6d}{:^15}{:^11}{:^11}\n'.format(barra, relaBuffer[1].get_nomeAna(barra), relaBuffer[1].get_nomeAtp(barra), relaBuffer[1].get_nomeGerAtp(barra)))
-        
+
 
 
 
@@ -973,13 +976,13 @@ def main():
     # Inicia a execução das operações e obtenção de dados
 
 
-    # Obtém a lista de barras de fronteira e os circuitos equivalentes 
+    # Obtém a lista de barras de fronteira e os circuitos equivalentes
     #conectados a elas do arquivo .ANA
     dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
 
     dlin = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
 
-    
+
 
 
     # A seguir é feita a seleção do modo de operação do programa, de acordo com
@@ -987,7 +990,7 @@ def main():
 
 
     if 'b' in comando:
-        relaWatch.relaBuffer = ('barras', dbar, dlin)  
+        relaWatch.relaBuffer = ('barras', dbar, dlin)
 
     else:
         try:
@@ -1030,7 +1033,7 @@ def main():
 
     # Verifica se há alguma valor negativo de parametro, e alerta o usuario
     if dlin.negs:
-        relaWatch.relaBuffer = ('Negs', dlin.negs) 
+        relaWatch.relaBuffer = ('Negs', dlin.negs)
 
     # FIM DA EXECUÇÃO
     relaWatch.relaBuffer = ('fim',)

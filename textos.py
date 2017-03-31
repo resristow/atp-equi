@@ -1,12 +1,15 @@
+#!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
+
 """
 Textos de ajuda ao usuário
 """
 
 texto={
-    'welcome': 
+    'welcome':
 """
   =================================
- ||ATP-EQUI                       || 
+ ||ATP-EQUI                       ||
  ||Autor: RES Ristow              ||
  ||                               ||
  ||Versão {}                   ||
@@ -22,7 +25,7 @@ texto={
     'cabecalhoF':
         'NÚMERO NOME ATP-NÓ ATP-FONTE',
 
-    'relaBarra': 
+    'relaBarra':
 """O usuário optou por apenas imprimir a relação de barras do arquivo .ANA
 (comando 'barras'). O total de barras que possuem equivalentes conectados é {0!s}.
 Segue a lista abaixo:\n\n""",
@@ -44,7 +47,7 @@ as fontes equivalentes já modeladas.
 O arquivo {} foi gravado com sucesso!\n\n""",
 
     'relaEqui':
-"""O arquivo {} foi gerado com sucesso! Foram encontradas {!s} barras com 
+"""O arquivo {} foi gerado com sucesso! Foram encontradas {!s} barras com
 equivalentes conectados, sendo que {!s} são fontes. A lista completa de barras é apresentada abaixo.\n\n""",
 
     'relaErroMiss':
@@ -69,4 +72,4 @@ O arquivo {} foi gravado com sucesso!
 
 """
 
-}    
+}
