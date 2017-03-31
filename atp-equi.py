@@ -26,6 +26,7 @@ import sys
 import datetime
 from openpyxl import load_workbook
 import json
+import codecs
 
 # x.y.z
 # x = major change
@@ -965,6 +966,7 @@ def main():
 
 
     # Verifica a existência do arquivo .ANA
+    print arqPaths['Ana'].resolve()
     try:
         arqPaths['Ana'].resolve()
     except(FileNotFoundError):
@@ -978,9 +980,9 @@ def main():
 
     # Obtém a lista de barras de fronteira e os circuitos equivalentes
     #conectados a elas do arquivo .ANA
-    dbar = get_DBAR(arqPaths['Ana'].open('r'), Nodes())
+    dbar = get_DBAR(codecs.open(str(arqPaths['Ana'].resolve()), mode="r", encoding="iso-8859-1"), Nodes())
 
-    dlin = get_EQUIV(arqPaths['Ana'].open('r'), Branches(), dbar)
+    dlin = get_EQUIV(codecs.open(str(arqPaths['Ana'].resolve()), mode="r", encoding="iso-8859-1"), Branches(), dbar)
 
 
 
