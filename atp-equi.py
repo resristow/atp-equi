@@ -345,7 +345,7 @@ def getAtpNames(arqPaths, dbar, dlin, base):
 
     tabela_Nomes = {}
 
-    for linha in ws.rows[1:]:
+    for linha in ws.iter_rows(row_offset=1):
         try:
             num_barra = int(linha[offset].value)
         except(TypeError):
