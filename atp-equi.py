@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # ATP-EQUI - Programa para gerar equivalentes de rede para o software ATP
