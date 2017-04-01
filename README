@@ -8,7 +8,7 @@ ________________________________________________________________________________
 
 A Licença GPLv3 está no arquivo LICENSE.
 
-Site para avisar sobre Bugs e Melhorias, entrar em contato com o desenvolvedor, 
+Site para avisar sobre Bugs e Melhorias, entrar em contato com o desenvolvedor,
 baixar outra cópia em formato binário:
 https://github.com/resristow/atp-equi
 
@@ -26,11 +26,14 @@ COMANDOS:
 - Rj Idem ao Comando R, porém não roda novamente os curto-circuitos do ATP
 
 O arquivo ATP-EQUI.INI contém os caminhos para os arquivos necessários para o
-processamento dos dados.
+processamento dos dados. Esse arquivo deverá estar no mesmo diretório do progra-
+ma executável.
 
 O programa necessita de uma planilha com a correlação entre os números das
 barras do ANAFAS e o nome de nó no ATP. Por padrão, essa planilha possui o nome
 NOMESATP.XLSX.
+
+Exemplos do ATP-EQUI.INI e NOMESATP.XLSX são fornecidos no diretório ./releases/NAOREMOVER/ .
 
 EXEMPLOS DE USO:
 
