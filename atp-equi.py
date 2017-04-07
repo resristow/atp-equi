@@ -946,7 +946,7 @@ def paramsIniciais(params):
 
 def main():
 
-    arqPaths, comando, base = paramsIniciais(json.load(Path('atp-equi.ini').open('r')))
+    arqPaths, comando, base = paramsIniciais(json.load(Path('preferences.json').open('r')))
 
     # Trata dos argumentos de linha de comando
     argumnt = args_Handler()
