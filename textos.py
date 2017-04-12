@@ -39,7 +39,7 @@ O relatório foi gravado em {}.\n\n""",
 "O arquivo {} foi lido com sucesso!\n\n",
 
     'relaErroArq':
-"""You lose, fella! O arquivo {} não foi encontrado.""",
+"""You lose, fella! O arquivo {} não foi encontrado.\n""",
 
     'relaSrc':
 """O usuário optou por emitir um arquivo .lib com o cartão ATP /SOURCE com
@@ -73,3 +73,15 @@ O arquivo {} foi gravado com sucesso!
 """
 
 }
+
+# tradução do argparse
+def traduzArgParse(Text):
+    Text = Text.replace("usage","uso")
+    Text = Text.replace("show this help message and exit",\
+    "mostra esta ajuda e termina o programa")
+    Text = Text.replace("error:","erro:")
+    Text = Text.replace("the following arguments are required:","os seguintes parâmetros são obrigatórios:")
+    Text = Text.replace("positional arguments","argumentos obrigatórios")
+    Text = Text.replace("optional arguments","argumentos opcionais")
+
+    return(Text)
