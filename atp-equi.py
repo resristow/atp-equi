@@ -30,6 +30,7 @@ import gettext
 # Traduzir o argparse para o português
 gettext.gettext = textos.traduzArgParse
 import argparse
+import os
 
 # x.y.z
 # x = major change
@@ -430,9 +431,9 @@ def makeLib(arqPaths, dlin, dbar, inner = 0):
     que irá conter a rede equivalentada pelo Anafas."""
 
     if not inner:
-        arquivo = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-equivalentes.lib')
+        arquivo = arqPaths['cwd'].resolve() / Path(arqPaths['Ana'].name[0:-4] + '-equivalentes.lib')
     else:
-        arquivo = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-interna.lib')
+        arquivo = arqPaths['cwd'].resolve() / Path(arqPaths['Ana'].name[0:-4] + '-interna.lib')
     arquivo = arquivo.open('w')
 
     numTrf = 1
@@ -538,7 +539,7 @@ def makeLib(arqPaths, dlin, dbar, inner = 0):
 def makeSource(arqPaths, dbar):
     """Escreve um arquivo-cartão /SOURCE no formato .lib com as fontes do siste-
     equivalente."""
-    arquivo = arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-source.lib')
+    arquivo = arqPaths['cwd'].resolve() / Path(arqPaths['Ana'].name[0:-4] + '-source.lib')
     arquivo = arquivo.open('w')
     arquivo.write('/SOURCE\nC < n 1><>< Ampl.  >< Freq.  ><Phase/T0><   A1   ><   T1   >< TSTART >< TSTOP  >\n')
     for barra in dbar.get_all():
@@ -799,7 +800,7 @@ def make_Rela(relaBuffer, arqPaths):
     ver no relatório.
     """
 
-    rela = arqPaths['Ana'].parent / Path(arqPaths['Ana'].stem + '-relatorio.rel')
+    rela = arqPaths['cwd'] / Path(arqPaths['Ana'].name[0:-4] + '-relatorio.rel')
 
     if 'welcome' in relaBuffer:
 
@@ -908,7 +909,21 @@ class GMT1(datetime.tzinfo):
         return datetime.timedelta(0)
 
 
-def paramsIniciais(params):
+def paramsIniciais(file_json):
+
+    # Ler arquivo JSON, remover comentários e salvar as opções do usuário
+    opcoes = ''
+    try:
+        with open(file_json,'r') as f:
+            for line in f:
+                line = line.partition('#')[0]
+                line.rstrip()
+                opcoes += line
+    except:
+        print("Arquivo ",file_json," inválido!\nPrograma terminado!")
+        sys.exit()
+
+    params = json.loads(opcoes)
 
     arqPaths = {'Ana' : '',
                 'Nomes' : '',
@@ -918,31 +933,20 @@ def paramsIniciais(params):
                 'ATPcwd' : '',
                 'initSource': ''}
 
-    for param in params['usuario']['caminhos']:
-        if params['usuario']['caminhos'][param]:
-            arqPaths[param] = Path(params['usuario']['caminhos'][param])
+    for param in params['caminhos']:
+        if params['caminhos'][param]:
+            arqPaths[param] = Path(params['caminhos'][param])
 
-    for path in arqPaths:
-        if not arqPaths[path]:
-            arqPaths[path] = Path(params['default']['caminhos'][path])
-
+    arqPaths['cwd'] = Path(os.getcwd())
     arqPaths['Ana'] = arqPaths['cwd'] / arqPaths['Ana']
     arqPaths['Nomes'] = arqPaths['cwd'] / arqPaths['Nomes']
     arqPaths['Rncc'] = arqPaths['cwd'] / arqPaths['Rncc']
     arqPaths['Atp'] = arqPaths['ATPcwd'] / arqPaths['Atp']
     arqPaths['initSource'] = arqPaths['cwd'] / arqPaths['initSource']
 
-    if params['usuario']['comando']:
-        comando = params['usuario']['comando']
-    else:
-        comando = params['default']['comando']
+    base = params['base']
 
-    if params['usuario']['base']:
-        base = params['usuario']['base']
-    else:
-        base = params['default']['base']
-
-    return arqPaths, comando, base
+    return arqPaths, base
 
 
 
@@ -952,7 +956,8 @@ def main():
     argumnt = args_Handler()
 
     # Leitura do arquivo JSON e das opções do usuário
-    arqPaths, comando, base = paramsIniciais(json.load(Path(argumnt.args.json).open('r')))
+    # Abrir, ler, eliminar comentários e salvar as opções de entrada
+    arqPaths, base = paramsIniciais(argumnt.args.json)
 
     #Instancia a classe de monitoramento do status do relatório. Conforme os
     # processos vão avançando, o relatório vai sendo escrito.
@@ -984,7 +989,7 @@ def main():
     #os argumentos que o usuário entrou na linha de comando.
 
     # b  Impressão de lista de barras de fronteira do arquivo .ANA
-    if argumnt.args.b == True:
+    if argumnt.args.b:
         relaWatch.relaBuffer = ('barras', dbar, dlin)
 
     else:
@@ -1005,26 +1010,26 @@ def main():
             relaWatch.relaBuffer = ('miss', autoEquiv, 'equi')
 
         # R  Comparação de níveis de curto-circuito do ANAFAS com os do ATP
-        if argumnt.args.R == True:
+        if argumnt.args.R:
             valsCurto = compCurto(arqPaths, dbar, jump=0)
             relaWatch.relaBuffer = ('rncc', valsCurto)
 
         # Rj Idem ao Comando R, porém não roda novamente os curto-circuitos do ATP
-        if argumnt.args.Rj == True:
+        if argumnt.args.Rj:
             valsCurto = compCurto(arqPaths, dbar, jump=1)
             relaWatch.relaBuffer = ('rncc', valsCurto)
 
-    if argumnt.args.s == True:
+    if argumnt.args.s:
         makeSource(arqPaths, dbar)
         relaWatch.relaBuffer = ('src',)
 
-    if argumnt.args.i == True:
+    if argumnt.args.i:
         makeLib(arqPaths, dlin, dbar, inner = 1)
         relaWatch.relaBuffer = ('inner', arqPaths['cwd'].resolve() / Path(str(arqPaths['Ana'].stem) + '-interna.lib'))
         if autoIntern:
             relaWatch.relaBuffer = ('miss', autoIntern, 'inner')
 
-    if argumnt.args.e == True:
+    if argumnt.args.e:
         makeLib(arqPaths, dlin, dbar, inner = 0)
         relaWatch.relaBuffer = ('equi', dbar, dlin)
 
