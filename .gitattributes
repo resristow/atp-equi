@@ -1,0 +1,2 @@
+# Explicitar a terminação do arquivo opcoes.json
+opcoes.json text eol=crlf
