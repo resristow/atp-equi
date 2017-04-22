@@ -9,23 +9,29 @@ ________________________________________________________________________________
 A Licença GPLv3 está no arquivo LICENSE.
 
 Site para avisar sobre Bugs e Melhorias, entrar em contato com o desenvolvedor,
-baixar outra cópia em formato binário:
-https://github.com/resristow/atp-equi
+baixar outra cópia em formato binário: https://github.com/resristow/atp-equi
 
 ________________________________________________________________________________
 
-USO GERAL:
-> atp-equi.exe [-h] [Comandos]
+uso: ATP-EQUI [-h] [-e] [-s] [-R | -Rj | -b] [-i] json
 
-COMANDOS:
-- e  Criação do cartão .lib /BRANCH com os circuitos equivalentes
-- s  Criação de cartão .lib /SOURCE com as fontes equivalentes
-- b  Impressão de lista de barras de fronteira do arquivo .ANA
-- i  Criação de cartão .lib /BRANCH com a rede interna
-- R  Comparação de níveis de curto-circuito do ANAFAS com os do ATP
-- Rj Idem ao Comando R, porém não roda novamente os curto-circuitos do ATP
+Cria um equivalente para o ATP
 
-O arquivo ATP-EQUI.INI contém os caminhos para os arquivos necessários para o
+argumentos obrigatórios:
+  json        Arquivo com as configurações - modelo opcoes.json
+
+argumentos opcionais:
+  -h, --help  mostra esta ajuda e termina o programa
+  -e          imprime equivalente.lib
+  -s          imprime source.lib
+  -R          compara niveis de curto entre Anafas e ATP, rodando
+              automaticamente os curto-circuitos no ATP
+  -Rj         mesmo que R, mas não roda o ATP
+  -b          lista barras com equivalentes
+  -i          imprime .lib da rede interna
+
+
+O arquivo opcoes.json contém os caminhos para os arquivos necessários para o
 processamento dos dados. Esse arquivo deverá estar no mesmo diretório do progra-
 ma executável.
 
@@ -33,15 +39,15 @@ O programa necessita de uma planilha com a correlação entre os números das
 barras do ANAFAS e o nome de nó no ATP. Por padrão, essa planilha possui o nome
 NOMESATP.XLSX.
 
-Exemplos do ATP-EQUI.INI e NOMESATP.XLSX são fornecidos no diretório ./releases/NAOREMOVER/ .
+Exemplos do opcoes.json e NOMESATP.XLSX são fornecidos juntamente com o programa.
 
 EXEMPLOS DE USO:
 
 Impressão das barras de fronteira:
-> atp-equi.exe b
+> atp-equi.exe -b opcoes.json
 
 Obtenção dos equivalentes do ATP e cartão SOURCE com as fontes do equivalente:
-> atp-equi.exe es
+> atp-equi.exe -e -s opcoes.json
 
 ________________________________________________________________________________
 
