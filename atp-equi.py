@@ -3,6 +3,7 @@
 
 # ATP-EQUI - Programa para gerar equivalentes de rede para o software ATP
 #     Copyright (C) 2015  Rafael Eduardo S. Ristow (resristow)
+#     Desenvolvido inicialmente em Eletrosul Centrais Elétricas S/A
 
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
