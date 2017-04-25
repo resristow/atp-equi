@@ -1,0 +1,29 @@
+Criação de nova função para criar automaticamente as chaves, instantes de chaveamento e curto-cicrcuito dos casos de energização de LTs e TFs.
+
+Energização:
+
+Cada linha a ser energizada terá a seguinte configuração: Nó Emissor -- Chave 3F -- Nó "EMISS" -- 1/2 LT -- Nó "MEIOL" -- 1/2 LT -- Chave 3F -- Nó "RECEP"
+
+O próprio nome do arquivo informará ao programa de qual linha se trata e qual lado será energizado (** confirmar se é melhor fornecer um arquivo com 1,05 de cada lado ou um arquivo para cada lado com 1,05 **) => 
+ENERG_<nome ATP do emissor>_<nome ATP do receptor>.atp
+
+O que será feito pelo programa:
+
+	-- alterar o tempo de execução e timestep para valores padronizados;
+
+	-- inserir chaves e monitoração para medição de tensão temporária;
+
+	-- inserir o .lib estatístico padronizado;
+
+	-- colocar um curto no nó receptor desde t=-1 e salvar os casos com *_1F.atp
+
+	-- alterar o tempo das chaves do emissor e receptor de acordo com o lado a ser manobrado:
+		-- receptor: fechado sempre
+		-- emissor: fechar em 10ms
+
+Religamento tripolar:
+
+Segue a mesma premissa da energização
+
+
+
