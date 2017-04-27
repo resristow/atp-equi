@@ -1,29 +1,75 @@
-Criação de nova função para criar automaticamente as chaves, instantes de chaveamento e curto-cicrcuito dos casos de energização de LTs e TFs.
+Cada linha a ser manobrada terá a seguinte configuração:
+Nó da SE -- Chave 3F -- Nó "EMISS" -- 1/2 LT -- Nó "MEIOL" -- 1/2 LT -- Nó "RECEP" -- Chave 3F -- Nó da SE remota
+
+O próprio nome do arquivo informará ao programa de qual linha se trata e qual lado será energizado.
 
 Energização:
 
-Cada linha a ser energizada terá a seguinte configuração: Nó Emissor -- Chave 3F -- Nó "EMISS" -- 1/2 LT -- Nó "MEIOL" -- 1/2 LT -- Chave 3F -- Nó "RECEP"
-
-O próprio nome do arquivo informará ao programa de qual linha se trata e qual lado será energizado (** confirmar se é melhor fornecer um arquivo com 1,05 de cada lado ou um arquivo para cada lado com 1,05 **) => 
 ENERG_<nome ATP do emissor>_<nome ATP do receptor>.atp
+Por exemplo: ENERG_ARE52_JSU52.atp
 
 O que será feito pelo programa:
 
-	-- alterar o tempo de execução e timestep para valores padronizados;
+	1 alterar o tempo de execução e timestep para valores padronizados (** definir quais **);
 
-	-- inserir chaves e monitoração para medição de tensão temporária;
+	2 inserir chaves e monitoração para medição de tensão temporária;
 
-	-- inserir o .lib estatístico padronizado;
+	3 pedir para monitor tensões de fase e linha, bem como a corrente passante na chave manobrada e energia nos PR;
 
-	-- colocar um curto no nó receptor desde t=-1 e salvar os casos com *_1F.atp
+	4 inserir o .lib estatístico padronizado;
 
-	-- alterar o tempo das chaves do emissor e receptor de acordo com o lado a ser manobrado:
-		-- receptor: fechado sempre
-		-- emissor: fechar em 10ms
+	5 alterar o tempo das chaves do emissor e receptor de acordo com o lado a ser manobrado:
+		-- RECEP: fechado sempre
+		-- EMISS: fechar em 10ms
+
+	6 salvar o caso com o mesmo nome?
+
+	6 colocar um curto no nó RECEP desde t=-1 e salvar estes casos com *_1F.atp.
 
 Religamento tripolar:
 
-Segue a mesma premissa da energização
+RELIG_<nome ATP do emissor>_<nome ATP do receptor>.atp
+
+O que será feito pelo programa:
+
+	Itens 1 a 4 da energização e:
+
+	5 aplicar falta no nó RECEP com tc = 10ms e to = 100s (Sem Sucesso) ou 65ms após abertura de RECEP (Com sucesso)
+
+	6 alterar o tempo das chaves do emissor e receptor de acordo com o lado a ser manobrado:
+		-- RECEP: fechado -1, abre 20ms após abertura do EMISS
+		-- EMISS: abre 150ms(230kV) ou 100ms(525kV) após aplicação da falta, fecha estatisticamente após 500ms da abertura de RECEP
+
+	7 salvar como *_SC.atp ou *_CC.atp.
 
 
+Rejeição:
 
+REJEI_<nome ATP do receptor>_<nome ATP do emissor>.atp
+
+O que será feito:
+
+	Itens 1 a 4 da energização e:
+
+	5 alterar o tempo das chaves do emissor e receptor de acordo com o lado a ser manobrado:
+		-- RECEP: abrir em 10ms
+		-- EMISS: sempre fechado
+
+	6 salvar.
+
+
+Religamento monopolar:
+
+RMONO_<>_<>.atp
+
+O que será feito:
+
+	Itens 1 a 4 da energização e:
+
+	5 aplicar falta no nó RECEP com tc = 10ms e to = 75ms
+
+	6 alterar o tempo das chaves do emissor e receptor de acordo com o lado a ser manobrado:
+		-- RECEP: fechado -1, abre fase A 20ms após abertura do EMISS
+		-- EMISS: abre fase A 150ms(230kV) ou 100ms(525kV) após aplicação da falta, fecha estatisticamente após 500ms da abertura de RECEP.
+
+	7 salvar.

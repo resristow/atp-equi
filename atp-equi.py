@@ -943,6 +943,22 @@ def paramsIniciais(params):
 
     return arqPaths, comando, base
 
+    def geraCasos()
+
+def criaCasos(arquivo):
+    "Cria os arquivos de determinada manobra. Já inclui .lib estatístico e demais coisas ??????"
+    # Detecta o tipo de manobra
+    sim = arquivo.name[:6]
+    if sim == "ENERG":
+
+    with arquivo.open('r') as caso:
+        for linha in caso:
+            # if 'C' in linha[0]:
+            #     continue
+            if '< Tmax >< Xopt >' in linha:
+                
+
+
 
 
 def main():
@@ -964,6 +980,12 @@ def main():
     data = datetime.datetime.now(GMT1())
     print(textos.texto['welcome'].format(VERSION, data.day, data.month, data.year, data.hour, data.minute))
     relaWatch.relaBuffer = ('welcome',)
+
+    if 'c' in comando:
+
+        relaWatch.runTime = 0
+
+
 
 
     # Verifica a existência do arquivo .ANA
