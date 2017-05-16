@@ -766,9 +766,6 @@ def compCurto(arqPaths, dbar, jump=0):
 
 
 
-
-
-
 def make_Rela(relaBuffer, arqPaths):
     """Função para escrever o relatório. Ela é chamada toda vez que o buffer
     relaBuffer é escrito. O que será escrito no relatório dependerá do que está
@@ -943,19 +940,39 @@ def paramsIniciais(params):
 
     return arqPaths, comando, base
 
-    def geraCasos()
 
 def criaCasos(arquivo):
     "Cria os arquivos de determinada manobra. Já inclui .lib estatístico e demais coisas ??????"
+
+    delta = '1.E-6'
+    tmax = '.4'
+
+    arquivo = Path(arquivo)
+
+    saida = Path(arquivo.name[:-4] + '_.atp').open('w')
+
     # Detecta o tipo de manobra
-    sim = arquivo.name[:6]
-    if sim == "ENERG":
+    sim = arquivo.name[:5]
+
+    # Processa para o caso de ENERGIZACAO
+    # if sim == "ENERG":
 
     with arquivo.open('r') as caso:
+        flag = 'original'
         for linha in caso:
-            # if 'C' in linha[0]:
-            #     continue
-            if '< Tmax >< Xopt >' in linha:
+            try:
+                if float(linha[:8]):
+                    saida.write('C MISCELANEOUS DATA Original\nC ' + linha)
+                    saida.write('{:>8}{:>8}'.format(delta, tmax) + linha[16:])
+                    sys.exit()
+            except(ValueError):
+                pass
+            if flag == 'original':
+                saida.write(linha)
+
+    sys.exit()
+
+
                 
 
 
@@ -963,7 +980,11 @@ def criaCasos(arquivo):
 
 def main():
 
+    # Leitura das opcoes JSON
     arqPaths, comando, base = paramsIniciais(json.load(Path('opcoes.json').open('r')))
+
+    # Teste da nova função
+    criaCasos(sys.argv[1])
 
     # Trata dos argumentos de linha de comando
     argumnt = args_Handler()
@@ -984,8 +1005,6 @@ def main():
     if 'c' in comando:
 
         relaWatch.runTime = 0
-
-
 
 
     # Verifica a existência do arquivo .ANA

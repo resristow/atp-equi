@@ -12,14 +12,14 @@ O que será feito pelo programa:
 
 	1 alterar o tempo de execução e timestep para valores padronizados (** definir quais **);
 
-	2 inserir chaves e monitoração para medição de tensão temporária;
+	2 inserir chaves e monitoração para medição de tensão temporária (** definir qual tempo de delay **);
 
-	3 pedir para monitor tensões de fase e linha, bem como a corrente passante na chave manobrada e energia nos PR;
+	3 pedir para monitorar tensões de fase e linha, bem como a corrente passante na chave manobrada e energia nos PR;
 
 	4 inserir o .lib estatístico padronizado;
 
 	5 alterar o tempo das chaves do emissor e receptor de acordo com o lado a ser manobrado:
-		-- RECEP: fechado sempre
+		-- RECEP: aberto sempre
 		-- EMISS: fechar em 10ms
 
 	6 salvar o caso com o mesmo nome?
