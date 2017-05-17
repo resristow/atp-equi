@@ -945,7 +945,9 @@ def criaCasos(arquivo):
     "Cria os arquivos de determinada manobra. Já inclui .lib estatístico e demais coisas ??????"
 
     delta = '1.E-6'
-    tmax = '.4'
+    tmax = '.01'
+    fases = ['A', 'B', 'C', 'A']
+    nodes = ['RECEP', 'EMISS']
 
     arquivo = Path(arquivo)
 
@@ -958,17 +960,55 @@ def criaCasos(arquivo):
     # if sim == "ENERG":
 
     with arquivo.open('r') as caso:
-        flag = 'original'
+        flag = 'misc'
         for linha in caso:
+
+            # Detecta os cartões de MISCELANEOUS DATA
             try:
-                if float(linha[:8]):
-                    saida.write('C MISCELANEOUS DATA Original\nC ' + linha)
-                    saida.write('{:>8}{:>8}'.format(delta, tmax) + linha[16:])
-                    sys.exit()
+                if flag == 'misc':
+                    if float(linha[:8]):
+                        tempLinha = caso.readline()
+                        saida.write('C MISCELANEOUS DATA ORIGINAIS\nC ' + linha + tempLinha)
+                        saida.write('{:>8}{:>8}'.format(delta, tmax) + linha[16:])
+                        saida.write('')
+
+                        flag = 'cartao'
+                        continue
             except(ValueError):
                 pass
-            if flag == 'original':
-                saida.write(linha)
+
+            # Detecta o primeiro cartão /"Alguma coisa" para inserir os cartões particulares do caso
+            if flag == 'cartao':
+                if linha[0] == '/':
+
+                # Insere as chaves para medição de tensões temporárias
+                    saida.write('C ===== CHAVES PARA MEDIÇÃO DE TENSÕES TEMPORÁRIAS ======\n/SWITCH\n')
+                    for node in nodes:
+                        for fase in fases[:-1]:
+                            saida.write('  {}{}TP{}{}{:>10}{:>10}{}0\n'.format(
+                                node, fase, node[:3], fase, '.1', '1.e3', 45*' '))
+
+                    saida.write('/OUTPUT\n  ')
+                    for node in nodes:
+                        for fase in fases[:-1]:
+                            saida.write('TP{}{}'.format(node[:3], fase))
+                    saida.write('\n-5')
+                    for node in nodes:
+                        for f in range(3):
+                            saida.write('TP{}{}TP{}{}'.format(
+                                node[:3], fases[f], node[:3], fases[f + 1]))
+
+                # Insere falta no nó RECEP
+                    saida.write('\nC ===== FALTA NO FIM DA LINHA =====\n/BRANCH\n')
+                    saida.write('  CURTOA{}{:>6}{}1'.format(' '*18, '1.e-6', 47*' '))
+                    saida.write('\n/SWITCH\n')
+                    saida.write('  RECEPACURTOA{:>10}{:>10}{}0\n'.format('-1.', '1.e3', 45*' '))
+                    flag = ''
+
+                saida.write('C ===== AGORA INICIA OS CARTÕES DO CASO ORIGINAL =====\n')
+
+
+            saida.write(linha)
 
     sys.exit()
 
