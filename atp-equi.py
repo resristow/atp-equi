@@ -947,11 +947,15 @@ def criaCasos(arquivo):
     delta = '1.E-6'
     tmax = '.01'
     fases = ['A', 'B', 'C', 'A']
-    nodes = ['RECEP', 'EMISS']
+    nodes = ['RECEP', 'EMISS', 'MEIOL']
+
+    # Identifica os nomes dos nós das extremidades da linha
+    extr = [arquivo[6:11], arquivo[12:17]]
 
     arquivo = Path(arquivo)
 
     saida = Path(arquivo.name[:-4] + '_.atp').open('w')
+
 
     # Detecta o tipo de manobra
     sim = arquivo.name[:5]
@@ -968,10 +972,9 @@ def criaCasos(arquivo):
                 if flag == 'misc':
                     if float(linha[:8]):
                         tempLinha = caso.readline()
-                        saida.write('C MISCELANEOUS DATA ORIGINAIS\nC ' + linha + tempLinha)
+                        saida.write('C MISCELANEOUS DATA ORIGINAIS\nC ' + linha + 'C ' + tempLinha)
                         saida.write('{:>8}{:>8}'.format(delta, tmax) + linha[16:])
-                        saida.write('')
-
+                        saida.write(tempLinha[:64] + '{:>8}'.format('1') + tempLinha[72:])
                         flag = 'cartao'
                         continue
             except(ValueError):
@@ -981,31 +984,44 @@ def criaCasos(arquivo):
             if flag == 'cartao':
                 if linha[0] == '/':
 
-                # Insere as chaves para medição de tensões temporárias
+                    # Insere as chaves para medição de tensões temporárias
                     saida.write('C ===== CHAVES PARA MEDIÇÃO DE TENSÕES TEMPORÁRIAS ======\n/SWITCH\n')
                     for node in nodes:
                         for fase in fases[:-1]:
                             saida.write('  {}{}TP{}{}{:>10}{:>10}{}0\n'.format(
                                 node, fase, node[:3], fase, '.1', '1.e3', 45*' '))
 
-                    saida.write('/OUTPUT\n  ')
+                    # Insere as variaveis de saída
+                    saida.write('C ===== CONFIGURACAO DAS VARIAVEIS DE SAIDA =====\n')
+                    saida.write('/OUTPUT')
                     for node in nodes:
+                        saida.write('\n  ')
                         for fase in fases[:-1]:
-                            saida.write('TP{}{}'.format(node[:3], fase))
-                    saida.write('\n-5')
+                            saida.write('TP{}{}{}{}'.format(node[:3], fase, node, fase))
                     for node in nodes:
+                        saida.write('\n-5')
                         for f in range(3):
-                            saida.write('TP{}{}TP{}{}'.format(
-                                node[:3], fases[f], node[:3], fases[f + 1]))
+                            saida.write('TP{}{}TP{}{}{}{}{}{}'.format(
+                                node[:3], fases[f], node[:3], fases[f + 1], node, fases[f], node, fases[f + 1]))
 
-                # Insere falta no nó RECEP
+
+                    # Insere falta no nó RECEP
                     saida.write('\nC ===== FALTA NO FIM DA LINHA =====\n/BRANCH\n')
                     saida.write('  CURTOA{}{:>6}{}1'.format(' '*18, '1.e-6', 47*' '))
                     saida.write('\n/SWITCH\n')
                     saida.write('  RECEPACURTOA{:>10}{:>10}{}0\n'.format('-1.', '1.e3', 45*' '))
-                    flag = ''
+                    flag = 'PRsChaves'
 
-                saida.write('C ===== AGORA INICIA OS CARTÕES DO CASO ORIGINAL =====\n')
+            if flag == 'PRsChaves':
+                # Insere monitorações de energia nos PRs e Chaves
+                # Considera-se que os PRs estão conectados nos nós RECEP e EMISS
+                if linha[:2] == '99':
+                    saida.write(linha[:-1] + '4')
+
+                if linha[2:14] == 
+
+                    saida.write('C ===== AGORA INICIA OS CARTÕES DO CASO ORIGINAL =====\n')
+
 
 
             saida.write(linha)
