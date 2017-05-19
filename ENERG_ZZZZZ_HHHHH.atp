@@ -26,6 +26,33 @@ C LT Areia - Curitiba
   X0401AX0421A                         43.48                                   0
   X0401BX0421B                         43.48                                   0
   X0401CX0421C                         43.48                                   0
+99EMISSC                                                                       0
+           1.E-5    67882.250994
+             50.          1.07E5
+            100.          1.09E5
+            200.          1.12E5
+            500.          1.15E5
+            1.E3          1.18E5
+            2.E3          1.24E5
+            9999
+99EMISSB                                                                       0
+           1.E-5    67882.250994
+             50.          1.07E5
+            100.          1.09E5
+            200.          1.12E5
+            500.          1.15E5
+            1.E3          1.18E5
+            2.E3          1.24E5
+            9999
+99EMISSA                                                                       0
+           1.E-5    67882.250994
+             50.          1.07E5
+            100.          1.09E5
+            200.          1.12E5
+            500.          1.15E5
+            1.E3          1.18E5
+            2.E3          1.24E5
+            9999
 C TRANSFORMADOR I DE PALHOÇA 230/138 (tap em 218kV)
   TRANSFORMER              2.989519.36X0010A  1.E6                             0
       2.98901693      519.364873
@@ -3575,14 +3602,22 @@ $INCLUDE, CD-525-GAS_BIG-BLU, X0314A, X0314B, X0314C, X0315A, X0315B, X0315C $$
 C LT 525 KV CD GAS JOS-BLU
 $INCLUDE, CD-525-GAS_JOS-BLU, X0317A, X0317B, X0317C, X0232A, X0232B, X0232C $$
   , GP252A, GP252B, GP252C, X0316A, X0316B, X0316C
+C ************* DEBUGGING
+C < n1 >< n2 ><ref1><ref2>< R  >< L  >< C  >
+  HHHHHAJSU52A             1.E-6
+  HHHHHBJSU52B             1.E-6
+  HHHHHCJSU52C             1.E-6
+  ZZZZZAARE52A             1.E-6
+  ZZZZZBARE52B             1.E-6
+  ZZZZZCARE52C             1.E-6
 /SWITCH
 C < n 1>< n 2>< Tclose ><Top/Tde ><   Ie   ><Vf/CLOP ><  type  >
-  X0165AJSU52A                                        MEASURING                0
-  X0165BJSU52B                                        MEASURING                0
-  X0165CJSU52C                                        MEASURING                0
-  ARE52AX0203A                                        MEASURING                0
-  ARE52BX0203B                                        MEASURING                0
-  ARE52CX0203C                                        MEASURING                0
+  RECEPAHHHHHA                                        MEASURING                0
+  RECEPBHHHHHB                                        MEASURING                0
+  RECEPCHHHHHC                                        MEASURING                0
+  ZZZZZAEMISSA                                        MEASURING                0
+  ZZZZZBEMISSB                                        MEASURING                0
+  ZZZZZCEMISSC                                        MEASURING                0
   X0165AX0001A       -1.      1.E3                                             0
   X0165BX0001B       -1.      1.E3                                             0
   X0165CX0001C       -1.      1.E3                                             0

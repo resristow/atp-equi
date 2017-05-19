@@ -28,6 +28,7 @@ import datetime
 from openpyxl import load_workbook
 import json
 import codecs
+import re
 
 # x.y.z
 # x = major change
@@ -974,7 +975,10 @@ def criaCasos(arquivo):
                         tempLinha = caso.readline()
                         saida.write('C MISCELANEOUS DATA ORIGINAIS\nC ' + linha + 'C ' + tempLinha)
                         saida.write('{:>8}{:>8}'.format(delta, tmax) + linha[16:])
-                        saida.write(tempLinha[:64] + '{:>8}'.format('1') + tempLinha[72:])
+                        saida.write(tempLinha[:64] + '{:>8}'.format('200') + tempLinha[72:])
+                        # Escreve cartão estatístico
+                        saida.write('{:>8}{:>8}{:>8}{:>8}{:>8}{:>8}{:>8}{:16}{:>8}\n'.format(
+                            '1', '1', '0', '0', '1', '-1', '', '', '0'))
                         flag = 'cartao'
                         continue
             except(ValueError):
@@ -1010,17 +1014,92 @@ def criaCasos(arquivo):
                     saida.write('  CURTOA{}{:>6}{}1'.format(' '*18, '1.e-6', 47*' '))
                     saida.write('\n/SWITCH\n')
                     saida.write('  RECEPACURTOA{:>10}{:>10}{}0\n'.format('-1.', '1.e3', 45*' '))
-                    flag = 'PRsChaves'
 
-            if flag == 'PRsChaves':
-                # Insere monitorações de energia nos PRs e Chaves
-                # Considera-se que os PRs estão conectados nos nós RECEP e EMISS
-                if linha[:2] == '99':
-                    saida.write(linha[:-1] + '4')
+                    # Insere o cartão estatístico
+                    saida.write('C ===== CARTÃO PARA TABELAMENTO ESTATÍSTICO =====\n')
+                    saida.write('/STATISTICS\n')
+                    saida.write('STATISTICS DATA                2    0.05')
+                    base = '100.'
+                    findBuff = []
+                    for node in nodes:
+                        saida.write('\n 0{:>12}'.format(base))
+                        findBuff.append('\n 0{:>12}'.format(''))
+                        for fase in fases[:-1]:
+                            toWrite = '{}{}{}'.format(node, fase, ' '*6)
+                            saida.write(toWrite)
+                            findBuff.append(toWrite)
+                        findBuff.append('\nDISK\nRESET')
+                        saida.write('\n-1{:>12}'.format(base))
+                        findBuff.append('\n-1{:>12}'.format(''))
+                        for f in range(3):
+                            toWrite = '{}{}{}{}'.format(node, fases[f], node, fases[f + 1])
+                            saida.write(toWrite)
+                            findBuff.append(toWrite)
+                        findBuff.append('\nDISK\nRESET')
+                    saida.write('\n-2{:>12}'.format(base))
+                    findBuff.append('\n-2{:>12}'.format(''))
+                    for fase in fases[:-1]:
+                        toWrite = '{}{}EMISS{}'.format(extr[0], fase, fase)
+                        saida.write(toWrite)
+                        findBuff.append(toWrite)
+                    findBuff.append('\nDISK\nRESET')
+                    saida.write('\n-2{:>12}'.format(base))
+                    findBuff.append('\n-2{:>12}'.format(''))
+                    for fase in fases[:-1]:
+                        toWrite = 'SAT{}{}'.format(fase, ' '*8)
+                        saida.write(toWrite)
+                        findBuff.append(toWrite)
+                    findBuff.append('\nDISK\nRESET')
+                    saida.write('\n-4{:>12}'.format(base))
+                    findBuff.append('\n-4{:>12}'.format(''))
+                    for fase in fases[:-1]:
+                        toWrite = 'EMISS{}{}'.format(fase, ' '*6)
+                        saida.write(toWrite)
+                        findBuff.append(toWrite)
+                    findBuff.append('\nDISK\nRESET')
 
-                if linha[2:14] == 
+                    saida.write('\nFIND')
+                    for find in findBuff:
+                        saida.write(find)
+                    saida.write('\nQUIT\n')
 
                     saida.write('C ===== AGORA INICIA OS CARTÕES DO CASO ORIGINAL =====\n')
+
+                    flag = 'PR'                    
+
+            if flag == 'PR':
+            # Insere monitorações de energia nos PRs
+            # Considera-se que os PRs estão conectados nos nós RECEP e EMISS
+                if linha[:2] == '99':
+                    saida.write(linha[:-2] + '4\n')
+                    continue
+
+                if linha[:7] == '/SWITCH':
+                    flag = 'chaves'
+
+            if flag == 'chaves':
+                # Procura pela chave determinística do emissor
+                match = re.search('^..{}.EMISS.'.format(extr[0]), linha)
+                if match:
+                    saida.write('76{}{:>10}{:>10}{}STATISTICS{}1\n'.format(
+                        match.group()[2:], '0.01', '0.00125', ' '*20, ' '*15))
+                    continue
+
+                # Procura pela chave determinística do receptor
+                match = re.search('^..RECEP.{}.'.format(extr[1]), linha)
+                if match:
+                    saida.write('{}{:>10}{:>10}{}0\n'.format(match.group(), '100.', '1000.', ' '*45))
+                    continue
+
+
+
+
+                    # sys.exit()
+
+
+            # if flag == 'Chaves':
+
+
 
 
 
