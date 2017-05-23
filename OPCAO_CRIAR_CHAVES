@@ -34,11 +34,11 @@ O que será feito pelo programa:
 
 	Itens 1 a 4 da energização e:
 
-	5 aplicar falta no nó RECEP com tc = 10ms e to = 100s (Sem Sucesso) ou 65ms após abertura de RECEP (Com sucesso)
+	5 aplicar falta no nó RECEP com tc = 10ms e to = 100s (Sem Sucesso) ou 65ms após abertura de EMISS (Com sucesso)
 
 	6 alterar o tempo das chaves do emissor e receptor de acordo com o lado a ser manobrado:
-		-- RECEP: fechado -1, abre 20ms após abertura do EMISS
-		-- EMISS: abre 150ms(230kV) ou 100ms(525kV) após aplicação da falta, fecha estatisticamente após 500ms da abertura de RECEP
+		-- RECEP: fechado -1, abre 150ms(230kV) ou 100ms(525kV) após aplicação da falta
+		-- EMISS: abre 20ms após abertura do RECEP, fecha estatisticamente após 500ms da abertura de RECEP
 
 	7 salvar como *_SC.atp ou *_CC.atp.
 

@@ -9,68 +9,10 @@ $PREFIX,D:\Work\ATPWork\
 $SUFFIX, .LIB
 $DUMMY, XYZ000
 C  dT  >< Tmax >< Xopt >< Copt ><Epsiln>
-C MISCELANEOUS DATA ORIGINAIS
-C    1.E-6     .02     60.                
-C    10000       1       0       1       1       0       0       1       0
-   1.E-6     .01     60.                
-   10000       1       0       1       1       0       0       1     200
-       1       1       0       0       1      -1                               0
+   1.E-6     .02     60.                
+   10000       1       0       1       1       0       0       1       0
 C        1         2         3         4         5         6         7         8
 C 345678901234567890123456789012345678901234567890123456789012345678901234567890
-C ===== CHAVES PARA MEDIÇÃO DE TENSÕES TEMPORÁRIAS ======
-/SWITCH
-  RECEPATPRECA        .1      1.e3                                             0
-  RECEPBTPRECB        .1      1.e3                                             0
-  RECEPCTPRECC        .1      1.e3                                             0
-  EMISSATPEMIA        .1      1.e3                                             0
-  EMISSBTPEMIB        .1      1.e3                                             0
-  EMISSCTPEMIC        .1      1.e3                                             0
-  MEIOLATPMEIA        .1      1.e3                                             0
-  MEIOLBTPMEIB        .1      1.e3                                             0
-  MEIOLCTPMEIC        .1      1.e3                                             0
-C ===== CONFIGURACAO DAS VARIAVEIS DE SAIDA =====
-/OUTPUT
-  TPRECARECEPATPRECBRECEPBTPRECCRECEPC
-  TPEMIAEMISSATPEMIBEMISSBTPEMICEMISSC
-  TPMEIAMEIOLATPMEIBMEIOLBTPMEICMEIOLC
--5TPRECATPRECBRECEPARECEPBTPRECBTPRECCRECEPBRECEPCTPRECCTPRECARECEPCRECEPA
--5TPEMIATPEMIBEMISSAEMISSBTPEMIBTPEMICEMISSBEMISSCTPEMICTPEMIAEMISSCEMISSA
--5TPMEIATPMEIBMEIOLAMEIOLBTPMEIBTPMEICMEIOLBMEIOLCTPMEICTPMEIAMEIOLCMEIOLA
-C ===== FALTA NO FIM DA LINHA =====
-C /BRANCH
-C   CURTOA                   1.e-6                                               1
-C /SWITCH
-C   RECEPACURTOA       -1.      1.e3                                             0
-C ===== CARTÃO PARA TABELAMENTO ESTATÍSTICO =====
-/STATISTICS
-STATISTICS DATA                2    0.05
- 0187794.21361RECEPA      RECEPB      RECEPC      
--1325269.11935RECEPARECEPBRECEPBRECEPCRECEPCRECEPA
- 0187794.21361EMISSA      EMISSB      EMISSC      
--1325269.11935EMISSAEMISSBEMISSBEMISSCEMISSCEMISSA
- 0187794.21361MEIOLA      MEIOLB      MEIOLC      
--1325269.11935MEIOLAMEIOLBMEIOLBMEIOLCMEIOLCMEIOLA
--4  1000.00000RECEPA      RECEPB      RECEPC      
--4  1000.00000EMISSA      EMISSB      EMISSC      
-FIND
- 0            RECEPA      RECEPB      RECEPC      
-DISK
--1            RECEPARECEPBRECEPBRECEPCRECEPCRECEPA
-DISK
- 0            EMISSA      EMISSB      EMISSC      
-DISK
--1            EMISSAEMISSBEMISSBEMISSCEMISSCEMISSA
-DISK
- 0            MEIOLA      MEIOLB      MEIOLC      
-DISK
--1            MEIOLAMEIOLBMEIOLBMEIOLCMEIOLCMEIOLA
-DISK
--4            RECEPA      RECEPB      RECEPC      
-DISK
--4            EMISSA      EMISSB      EMISSC      
-DISK
-QUIT
-C ===== AGORA INICIA OS CARTÕES DO CASO ORIGINAL =====
 /BRANCH
 C < n1 >< n2 ><ref1><ref2>< R  >< L  >< C  >
 C < n1 >< n2 ><ref1><ref2>< R  >< A  >< B  ><Leng><><>0
@@ -4045,12 +3987,12 @@ C < n 1>< n 2>< Tclose ><Top/Tde ><   Ie   ><Vf/CLOP ><  type  >
   IT223AX0289A                                        MEASURING                0
   IT223BX0289B                                        MEASURING                0
   IT223CX0289C                                        MEASURING                0
-76ARE52AEMISSA      0.01   0.00125                    STATISTICS               1
-76ARE52BEMISSB      0.01   0.00125                    STATISTICS               1
-76ARE52CEMISSC      0.01   0.00125                    STATISTICS               1
-  RECEPAJSU52A      100.     1000.                                             0
-  RECEPBJSU52B      100.     1000.                                             0
-  RECEPCJSU52C      100.     1000.                                             0
+  ARE52AEMISSA       -1.      1.E3                                             0
+  ARE52BEMISSB       -1.      1.E3                                             0
+  ARE52CEMISSC       -1.      1.E3                                             0
+  RECEPAJSU52A       -1.      1.E3                                             0
+  RECEPBJSU52B       -1.      1.E3                                             0
+  RECEPCJSU52C       -1.      1.E3                                             0
 /SOURCE
 C < n 1><>< Ampl.  >< Freq.  ><Phase/T0><   A1   ><   T1   >< TSTART >< TSTOP  >
 14X0105A  11839.2004       60.                                     -1.      100.
@@ -4084,6 +4026,5 @@ BLANK SWITCH
 BLANK SOURCE
 BLANK OUTPUT
 BLANK PLOT
-BLANK STATISTICS
 BEGIN NEW DATA CASE
 BLANK
