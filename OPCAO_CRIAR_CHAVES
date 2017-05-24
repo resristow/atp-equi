@@ -49,13 +49,13 @@ REJEI_<nome ATP do receptor>_<nome ATP do emissor>.atp
 
 O que será feito:
 
-	Itens 1 a 4 da energização e:
+	Itens 1 a 3 da energização e:
 
-	5 alterar o tempo das chaves do emissor e receptor de acordo com o lado a ser manobrado:
+	4 alterar o tempo das chaves do emissor e receptor de acordo com o lado a ser manobrado:
 		-- RECEP: abrir em 10ms
 		-- EMISS: sempre fechado
 
-	6 salvar.
+	5 salvar.
 
 
 Religamento monopolar:
@@ -66,10 +66,10 @@ O que será feito:
 
 	Itens 1 a 4 da energização e:
 
-	5 aplicar falta no nó RECEP com tc = 10ms e to = 75ms
+	5 aplicar falta no nó RECEPA com tc = 10ms e to = 65ms após abertura de EMISS
 
 	6 alterar o tempo das chaves do emissor e receptor de acordo com o lado a ser manobrado:
-		-- RECEP: fechado -1, abre fase A 20ms após abertura do EMISS
-		-- EMISS: abre fase A 150ms(230kV) ou 100ms(525kV) após aplicação da falta, fecha estatisticamente após 500ms da abertura de RECEP.
+		-- RECEP: tc = -1, abre fase A 150ms(230kV) ou 100ms(525kV) após aplicação da falta
+		-- EMISS: abre fase A 20ms após abertura do RECEPA, fecha estatisticamente após 500ms da extinção da falta.
 
 	7 salvar.

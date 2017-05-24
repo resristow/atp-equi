@@ -955,6 +955,8 @@ def paramsIniciais(file_json):
 def criaCasos(lista):
     "Cria os arquivos de determinada manobra. Já inclui .lib estatístico e demais coisas ??????"
 
+    fixaOpc = {'energ':0, 'relig':0, 'rmono':0}
+
     for arq in lista.open('r'):
 
         # Identifica os nomes dos nós das extremidades da linha
@@ -977,7 +979,7 @@ def criaCasos(lista):
 
         delta = '1.E-6'
 
-        if sim == 'relig':
+        if sim == 'relig' or sim == 'rmono':
             tmax = '0.8'
         else:
             tmax = '0.3'
@@ -988,7 +990,7 @@ def criaCasos(lista):
         # delay para abertura do DJ de RECEP após falta,
         # delay para remoção da falta (com sucesso) após abertura do RECEP e
         # delay para fechamento estatístico de EMISS após abertura de RECEP
-        tChaves = {'ener':'0.01', 'relig':['0.01', to, '0.065', '0.5']}
+        tChaves = {'energ':'0.01', 'relig':['0.01', to, '0.065', '0.5'], 'rmono':['0.01', to, '0.065', '0.5']}
         disp = '0.00125'
         fases = ['A', 'B', 'C', 'A']
         nodes = ['RECEP', 'EMISS', 'MEIOL']
@@ -1007,21 +1009,31 @@ def criaCasos(lista):
 
         if sim == 'energ':
             tipo = 'ENERGIZAÇÃO'
-            saidaNomes = [arquivo.name[:-4] + '_.atp', arquivo.name[:-4] + '_1F.atp']
+            saidaNomes = [arquivo.stem + '_.atp', arquivo.stem + '_1F.atp']
             
         elif sim == 'relig':
             tipo = 'RELIGAMENTO TRIPOLAR'
-            saidaNomes = [arquivo.name[:-4] + '_CS.atp', arquivo.name[:-4] + '_SS.atp']
+            saidaNomes = [arquivo.stem + '_CS.atp', arquivo.stem + '_SS.atp']
 
-        saida1 = Path(saidaNomes[0]).open('w')
-        saida2 = Path(saidaNomes[1]).open('w')
+        elif sim == 'rmono':
+            tipo = 'RELIGAMENTO MONOPOLAR'
+            saidaNomes = [arquivo.stem + '_.atp']
+
+        saidas = []
+
+        for saida in saidaNomes:
+            saidas.append(Path(saida).open('w'))
 
 
         # Confirma com o usuário
-        print('Caso de {}\nOs parâmetros considerados são:\n'.format(tipo))
-        troca = 'dummy'
+        if fixaOpc[sim]:
+            troca = ''
+        else:
+            troca = 'dummy'
+            print('Caso de {}\nOs parâmetros considerados são:\n'.format(tipo))
+
         while(troca):
-            if sim == 'relig':
+            if sim == 'relig' or sim == 'rmono':
                 print('\n\
         1) Timestep: {}\n\
         2) Tempo de Simulação: {}\n\
@@ -1036,15 +1048,17 @@ def criaCasos(lista):
             tChaves['relig'][2],
             tChaves['relig'][3],
             disp))
-                troca = input('Digite o número do parâmetro que deseja mudar [1-7], ENTER para nenhum, * para restaurar padrões\n')
+                troca = input('Digite o número do parâmetro que deseja mudar [1-7], ENTER para nenhum, * para restaurar padrões,\
+                    = para fixar essa configuração para o resto das manobras deste tipo\n')
 
             elif sim == 'energ':
                 print('\n\
         1) Timestep: {}\n\
         2) Tempo de Simulação: {}\n\
         3) Instante de tempo da manobra: {}\n\
-        4) Tempo de dispersão: {}\n'.format(delta, tmax, tChaves['ener'], disp))
-                troca = input('Digite o número do parâmetro que deseja mudar [1-4], ENTER para nenhum, * para restaurar padrões\n')
+        4) Tempo de dispersão: {}\n'.format(delta, tmax, tChaves['energ'], disp))
+                troca = input('Digite o número do parâmetro que deseja mudar [1-4], ENTER para nenhum, * para restaurar padrões,\
+                    = para fixar essa configuração para o resto das manobras deste tipo\n')
 
             if not troca:
                 break
@@ -1057,36 +1071,48 @@ def criaCasos(lista):
 
             elif troca == '3':
                 if sim == 'ener':
-                    tChaves['ener'] = input('Instante de tempo da manobra: ')
+                    tChaves['energ'] = input('Instante de tempo da manobra: ')
                 elif sim == 'relig':
                     tChaves['relig'][0] = input('Instante de aplicação da falta: ')
+                elif sim == 'rmono':
+                    tChaves['rmono'][0] = input('Instante de aplicação da falta: ')
 
             elif troca == '4':
                 if sim == 'ener':
                     disp = input('Tempo de dispersão: ')
                 elif sim == 'relig':
                     tChaves['relig'][1] = input('Tempo para abertura do DJ: ')
+                elif sim == 'rmono':
+                    tChaves['rmono'][1] = input('Tempo para abertura do DJ: ')
 
             elif troca == '5':
                 if sim == 'relig':
                     tChaves['relig'][2] = input('Delay para remoção da falta: ')
+                elif sim == 'rmono':
+                    tChaves['rmono'][2] = input('Delay para remoção da falta: ')
                 else:
                     print('Valor inválido\n')
 
             elif troca == '6':
                 if sim == 'relig':
                     tChaves['relig'][3] = input('Delay para fechamento estatístico: ')
+                elif sim == 'rmono':
+                    tChaves['rmono'][3] = input('Delay para fechamento estatístico: ')
                 else:
                     print('Valor inválido\n')
 
             elif troca == '7':
-                if sim == 'relig':
+                if sim == 'relig' or sim == 'rmono':
                     disp = input('Tempo de dispersão: ')
                 else:
                     print('Valor inválido\n')
 
             elif troca == '*':
                 delta, tmax, tChaves, disp = tPadrao
+
+            elif troca == '=':
+                fixaOpc[sim] = 1
+                troca = ''
 
             else:
                 print('Valor inválido\n')
@@ -1102,11 +1128,11 @@ def criaCasos(lista):
                     if flag == 'misc':
                         if float(linha[:8]):
                             tempLinha = caso.readline()
-                            saida1.write('C MISCELANEOUS DATA ORIGINAIS\nC ' + linha + 'C ' + tempLinha)
-                            saida1.write('{:>8}{:>8}'.format(delta, tmax) + linha[16:])
-                            saida1.write(tempLinha[:64] + '{:>8}'.format('200') + tempLinha[72:])
+                            saidas[0].write('C MISCELANEOUS DATA ORIGINAIS\nC ' + linha + 'C ' + tempLinha)
+                            saidas[0].write('{:>8}{:>8}'.format(delta, tmax) + linha[16:])
+                            saidas[0].write(tempLinha[:64] + '{:>8}'.format('200') + tempLinha[72:])
                             # Escreve cartão estatístico
-                            saida1.write('{:>8}{:>8}{:>8}{:>8}{:>8}{:>8}{:>8}{:16}{:>8}\n'.format(
+                            saidas[0].write('{:>8}{:>8}{:>8}{:>8}{:>8}{:>8}{:>8}{:16}{:>8}\n'.format(
                                 '1', '1', '0', '0', '1', '-1', '', '', '0'))
                             flag = 'cartao'
                             continue
@@ -1118,44 +1144,49 @@ def criaCasos(lista):
                     if linha[0] == '/':
 
                         # Insere as chaves para medição de tensões temporárias
-                        saida1.write('C ===== CHAVES PARA MEDIÇÃO DE TENSÕES TEMPORÁRIAS ======\n/SWITCH\n')
+                        saidas[0].write('C ===== CHAVES PARA MEDIÇÃO DE TENSÕES TEMPORÁRIAS ======\n/SWITCH\n')
                         for node in nodes:
                             for fase in fases[:-1]:
-                                saida1.write('  {}{}TP{}{}{:>10}{:>10}{}0\n'.format(
+                                saidas[0].write('  {}{}TP{}{}{:>10}{:>10}{}0\n'.format(
                                     node, fase, node[:3], fase, '.1', '1.e3', 45*' '))
 
                         # Insere as variaveis de saída
-                        saida1.write('C ===== CONFIGURACAO DAS VARIAVEIS DE SAIDA =====\n')
-                        saida1.write('/OUTPUT')
+                        saidas[0].write('C ===== CONFIGURACAO DAS VARIAVEIS DE SAIDA =====\n')
+                        saidas[0].write('/OUTPUT')
                         for node in nodes:
-                            saida1.write('\n  ')
+                            saidas[0].write('\n  ')
                             for fase in fases[:-1]:
-                                saida1.write('TP{}{}{}{}'.format(node[:3], fase, node, fase))
+                                saidas[0].write('TP{}{}{}{}'.format(node[:3], fase, node, fase))
                         for node in nodes:
-                            saida1.write('\n-5')
+                            saidas[0].write('\n-5')
                             for f in range(3):
-                                saida1.write('TP{}{}TP{}{}{}{}{}{}'.format(
+                                saidas[0].write('TP{}{}TP{}{}{}{}{}{}'.format(
                                     node[:3], fases[f], node[:3], fases[f + 1], node, fases[f], node, fases[f + 1]))
 
 
                         # Insere falta no nó RECEP
                         if sim == 'energ':
-                            saida1.write('\nC ===== FALTA NO FIM DA LINHA =====\nC /BRANCH\n')
-                            saida1.write('C   CURTOA{}{:>6}{}1\n'.format(' '*18, '1.e-6', 47*' '))
-                            saida1.write('C /SWITCH\n')
-                            saida1.write('C   RECEPACURTOA{:>10}{:>10}{}0\n'.format('-1.', '1.e3', 45*' '))
-                        elif sim == 'relig':
-                            saida1.write('\nC ===== FALTA NO FIM DA LINHA =====\n/BRANCH\n')
-                            saida1.write('  CURTOA{}{:>6}{}1\n'.format(' '*18, '1.e-6', 47*' '))
-                            saida1.write('/SWITCH\n')
-                            saida1.write('  RECEPACURTOA{:>10}{:>10.9g}{}0\n'.format(tChaves['relig'][0],
-                                float(tChaves['relig'][0]) + float(to) + 0.02 + float(tChaves['relig'][2]),
-                                45*' '))
+                            saidas[0].write('\nC ===== FALTA NO FIM DA LINHA =====\nC /BRANCH\n')
+                            saidas[0].write('C   CURTOA{}{:>6}{}1\n'.format(' '*18, '1.e-6', 47*' '))
+                            saidas[0].write('C /SWITCH\n')
+                            saidas[0].write('C   RECEPACURTOA{:>10}{:>10}{}0\n'.format('-1.', '1.e3', 45*' '))
+                        elif sim == 'relig' or sim == 'rmono':
+                            saidas[0].write('\nC ===== FALTA NO FIM DA LINHA =====\n/BRANCH\n')
+                            saidas[0].write('  CURTOA{}{:>6}{}1\n'.format(' '*18, '1.e-6', 47*' '))
+                            saidas[0].write('/SWITCH\n')
+                            if sim == 'relig':
+                                saidas[0].write('  RECEPACURTOA{:>10}{:>10.9g}{}0\n'.format(tChaves['relig'][0],
+                                    float(tChaves['relig'][0]) + float(to) + 0.02 + float(tChaves['relig'][2]),
+                                    45*' '))
+                            elif sim == 'rmono':
+                                saidas[0].write('  RECEPACURTOA{:>10}{:>10.9g}{}0\n'.format(tChaves['rmono'][0],
+                                    float(tChaves['rmono'][0]) + float(to) + 0.02 + float(tChaves['rmono'][2]),
+                                    45*' '))
 
                         # Insere o cartão estatístico
-                        saida1.write('C ===== CARTÃO PARA TABELAMENTO ESTATÍSTICO =====\n')
-                        saida1.write('/STATISTICS\n')
-                        saida1.write('STATISTICS DATA                2    0.05')
+                        saidas[0].write('C ===== CARTÃO PARA TABELAMENTO ESTATÍSTICO =====\n')
+                        saidas[0].write('/STATISTICS\n')
+                        saidas[0].write('STATISTICS DATA                2    0.05')
 
                         baseVf = 230e3 * sqrt(2/3)
                         baseVl = 230e3 * sqrt(2)
@@ -1163,51 +1194,51 @@ def criaCasos(lista):
                         baseJ = 1000
                         findBuff = []
                         for node in nodes:
-                            saida1.write('\n 0{:>12.5f}'.format(baseVf))
+                            saidas[0].write('\n 0{:>12.5f}'.format(baseVf))
                             findBuff.append('\n 0{:12}'.format(''))
                             for fase in fases[:-1]:
                                 toWrite = '{}{}{}'.format(node, fase, ' '*6)
-                                saida1.write(toWrite)
+                                saidas[0].write(toWrite)
                                 findBuff.append(toWrite)
                             findBuff.append('\nDISK')
 
-                            saida1.write('\n-1{:>12.5f}'.format(baseVl))
+                            saidas[0].write('\n-1{:>12.5f}'.format(baseVl))
                             findBuff.append('\n-1{:12}'.format(''))
                             for f in range(3):
                                 toWrite = '{}{}{}{}'.format(node, fases[f], node, fases[f + 1])
-                                saida1.write(toWrite)
+                                saidas[0].write(toWrite)
                                 findBuff.append(toWrite)
                             findBuff.append('\nDISK')
 
-                        # saida1.write('\n-2{:>12}'.format(base))
+                        # saidas[0].write('\n-2{:>12}'.format(base))
                         # findBuff.append('\n-2{:>12}'.format(''))
                         # for fase in fases[:-1]:
                         #     toWrite = '{}{}EMISS{}'.format(extr[0], fase, fase)
-                        #     saida1.write(toWrite)
+                        #     saidas[0].write(toWrite)
                         #     findBuff.append(toWrite)
                         # findBuff.append('\nDISK')
 
                         for node in nodes[:-1]:
-                            saida1.write('\n-4{:>12.5f}'.format(baseJ))
+                            saidas[0].write('\n-4{:>12.5f}'.format(baseJ))
                             findBuff.append('\n-4{:12}'.format(''))
                             for fase in fases[:-1]:
                                 toWrite = '{}{}{}'.format(node, fase, ' '*6)
-                                saida1.write(toWrite)
+                                saidas[0].write(toWrite)
                                 findBuff.append(toWrite)
                             findBuff.append('\nDISK')
 
-                        saida1.write('\nFIND')
+                        saidas[0].write('\nFIND')
                         for find in findBuff:
-                            saida1.write(find)
-                        saida1.write('\nQUIT\n')
+                            saidas[0].write(find)
+                        saidas[0].write('\nQUIT\n')
 
-                        saida1.write('C ===== AGORA INICIA OS CARTÕES DO CASO ORIGINAL =====\n')
+                        saidas[0].write('C ===== AGORA INICIA OS CARTÕES DO CASO ORIGINAL =====\n')
 
                         flag = 'PR'                    
 
                 if flag == 'blank':
                     if linha.startswith('BEGIN'):
-                        saida1.write('BLANK STATISTICS\n')
+                        saidas[0].write('BLANK STATISTICS\n')
                         flag = 'done'
 
                 if flag == 'chaves':
@@ -1215,23 +1246,37 @@ def criaCasos(lista):
                     match = search('^..{}.EMISS.'.format(extr[0]), linha)
                     if match:
                         if sim == 'energ':
-                            saida1.write('76{}{:>10}{:>10}{}STATISTICS{}1\n'.format(
-                                match.group()[2:], tChaves['ener'], disp, ' '*20, ' '*15))
+                            saidas[0].write('76{}{:>10}{:>10}{}STATISTICS{}1\n'.format(
+                                match.group()[2:], tChaves['energ'], disp, ' '*20, ' '*15))
                             continue
                         elif sim == 'relig':
-                            saida1.write('{}{:>10}{:>10.9g}{}1\n'.format(match.group(), '-1.', float(tChaves['relig'][1]) + 0.02, ' '*45))
-                            saida1.write('76{}{:>10.9g}{:>10}{}STATISTICS{}1\n'.format(
+                            saidas[0].write('{}{:>10}{:>10.9g}{}1\n'.format(match.group(), '-1.', float(tChaves['relig'][1]) + 0.02, ' '*45))
+                            saidas[0].write('76{}{:>10.9g}{:>10}{}STATISTICS{}1\n'.format(
                                 match.group()[2:], float(tChaves['relig'][0]) + float(tChaves['relig'][1]) + float(tChaves['relig'][3]), disp, ' '*20, ' '*15))
+                            continue
+                        elif sim == 'rmono':
+                            if match.group()[-1] == 'A':
+                                saidas[0].write('{}{:>10}{:>10.9g}{}1\n'.format(match.group(), '-1.', float(tChaves['rmono'][1]) + 0.02, ' '*45))
+                                saidas[0].write('76{}{:>10.9g}{:>10}{}STATISTICS{}1\n'.format(
+                                    match.group()[2:], float(tChaves['rmono'][0]) + float(tChaves['rmono'][1]) + float(tChaves['rmono'][3]), disp, ' '*20, ' '*15))
+                            else:
+                                saidas[0].write('{}{:>10}{:>10}{}1\n'.format(match.group(), '-1.', '100.', ' '*45))
                             continue
 
                     # Procura pela chave determinística do receptor
                     match = search('^..RECEP.{}.'.format(extr[1]), linha)
                     if match:
                         if sim == 'energ':
-                            saida1.write('{}{:>10}{:>10}{}0\n'.format(match.group(), '100.', '1000.', ' '*45))
+                            saidas[0].write('{}{:>10}{:>10}{}0\n'.format(match.group(), '100.', '1000.', ' '*45))
                             continue
                         elif sim == 'relig':
-                            saida1.write('{}{:>10}{:>10.9g}{}0\n'.format(match.group(), '-1.', float(tChaves['relig'][0]) + float(tChaves['relig'][1]), ' '*45))
+                            saidas[0].write('{}{:>10}{:>10.9g}{}0\n'.format(match.group(), '-1.', float(tChaves['relig'][0]) + float(tChaves['relig'][1]), ' '*45))
+                            continue
+                        elif sim == 'rmono':
+                            if match.group()[7] == 'A':
+                                saidas[0].write('{}{:>10}{:>10.9g}{}0\n'.format(match.group(), '-1.', float(tChaves['rmono'][0]) + float(tChaves['rmono'][1]), ' '*45))
+                            else:
+                                saidas[0].write('{}{:>10}{:>10}{}1\n'.format(match.group(), '-1.', '100.', ' '*45))
                             continue
 
                     if linha.startswith('/'):
@@ -1241,36 +1286,37 @@ def criaCasos(lista):
                 # Insere monitorações de energia nos PRs
                 # Considera-se que os PRs estão conectados nos nós RECEP e EMISS
                     if linha[:2] == '99':
-                        saida1.write(linha[:-2] + '4\n')
+                        saidas[0].write(linha[:-2] + '4\n')
                         continue
 
                     if linha[:7] == '/SWITCH':
                         flag = 'chaves'
 
 
-                saida1.write(linha)
+                saidas[0].write(linha)
 
 
-        saida1.close()
+        saidas[0].close()
 
 
         # Cria o caso com curto no fim da linha (Energização) e caso sem sucesso (religamento)
-        with Path(saidaNomes[0]).open('r') as saida:
-            for linha in saida:
+        if sim == 'energ' or sim == 'relig':
+            with Path(saidaNomes[0]).open('r') as saida:
+                for linha in saida:
 
-                if sim == 'energ':
-                    if search('^C ===== FALTA', linha):
-                        saida2.write(linha)
-                        for n in range(4):
-                            saida2.write(saida.readline()[2:])
-                        continue
+                    if sim == 'energ':
+                        if search('^C ===== FALTA', linha):
+                            saidas[1].write(linha)
+                            for n in range(4):
+                                saidas[1].write(saida.readline()[2:])
+                            continue
 
-                elif sim == 'relig':
-                    if search('..RECEPACURTOA', linha):
-                        saida2.write('{}{:>10}{}'.format(linha[:24], '100.', linha[34:]))
-                        continue
+                    elif sim == 'relig':
+                        if search('..RECEPACURTOA', linha):
+                            saidas[1].write('{}{:>10}{}'.format(linha[:24], '100.', linha[34:]))
+                            continue
 
-                saida2.write(linha)
+                    saidas[1].write(linha)
 
 
 
