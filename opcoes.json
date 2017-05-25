@@ -1,35 +1,25 @@
 {
 	"caminhos": {
-		# Nome do arquivo onde será salva a rede interna ATP
 		"Atp":"RedeInterna.atp",
 
-		# Arquivo ANAFAS com a rede retida selecionada
 		"Ana":"equi.ana",
 
-		# Correlação de nós ATP e barras ANAFAS
 		"Nomes":"nomesatp.xlsx",
 
-		# Nome do relatório para conferência dos níveis  de curto-circuito
 		"Rncc":"RNCC.rel",
 
-		# Arquivo onde serão salvas as fontes a serem incluídas no arquivo ATP
 		"initSource":"iniciofontes.ini",
 
-		# ???
 		"ATPcwd":"",
 
-		# Nome do binário ATP
-		"tpbig":"mytpbig.exe",
+		"tpbig":"mytpbig_leo.exe",
 
-		# Pasta onde localiza-se o binário do ATP
 		"tpbigDir":"c:\\atp\\tpbigs",
 
-		# ???
 		"GNUDIR":"c:\\atp\\atpmingw",
 
 		"manobras":"lista_manobras.txt"
 	},
 
-	# Seleciona coluna do arquivo "Nomes": Coluna 2 = EPE, Coluna 3 = ONS
 	"base":"epe"
 }
