@@ -21,8 +21,8 @@
 import textos
 from pathlib import Path
 from math import *
-import subprocess
-import sys
+from subprocess import run
+from sys import exit
 import datetime
 from openpyxl import load_workbook
 import json
@@ -31,7 +31,6 @@ import gettext
 # Traduzir o argparse para o português
 gettext.gettext = textos.traduzArgParse
 import argparse
-import os
 from re import search
 import pickle as pk
 import time
@@ -669,7 +668,7 @@ def compCurto(arqPaths, dbar, jump=0):
 
         # Aqui roda os .atps e faz a leitura dos valores de curto-circuito
 
-        subprocess.run(str(batchPath), shell = True)
+        run(str(batchPath), shell = True)
 
     for arquivo in atpWork.glob('*f_*.lis'):
 
@@ -900,7 +899,7 @@ class relaWatcher():
 
     def setter2(self, value):
         if not value:
-            sys.exit()
+            exit()
 
     relaBuffer = property(fset=setter)
     runTime = property(fset=setter2)
@@ -927,7 +926,7 @@ def paramsIniciais(file_json):
                 opcoes += line
     except:
         print("Arquivo ",file_json," inválido!\nPrograma terminado!")
-        sys.exit()
+        exit()
 
     params = json.loads(opcoes)
 
@@ -943,7 +942,7 @@ def paramsIniciais(file_json):
         if params['caminhos'][param]:
             arqPaths[param] = Path(params['caminhos'][param])
 
-    arqPaths['cwd'] = Path(os.getcwd())
+    arqPaths['cwd'] = Path.cwd()
     arqPaths['Ana'] = arqPaths['cwd'] / arqPaths['Ana']
     arqPaths['Nomes'] = arqPaths['cwd'] / arqPaths['Nomes']
     arqPaths['Rncc'] = arqPaths['cwd'] / arqPaths['Rncc']
@@ -1367,7 +1366,7 @@ def main():
     # Experimentação da nova função de configurar automaticamente as manobras
     if argumnt.args.m:
         criaCasos(arqPaths)
-        sys.exit()
+        exit()
 
     #Instancia a classe de monitoramento do status do relatório. Conforme os
     # processos vão avançando, o relatório vai sendo escrito.
