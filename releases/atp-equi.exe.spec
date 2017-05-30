@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['..\\atp-equi.py'],
-             pathex=['D:\\Ferramentas\\Projeto ATP_Py\\atp-equi\\releases'],
+             pathex=['D:\\Ferramentas\\atp-equi\\releases'],
              binaries=None,
              datas=None,
              hiddenimports=[],
@@ -21,7 +21,7 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='atp-equi-1.0.1-x86.exe',
+          name='atp-equi-x64.exe',
           debug=False,
           strip=False,
           upx=True,
